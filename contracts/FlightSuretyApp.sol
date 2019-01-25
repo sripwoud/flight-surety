@@ -145,7 +145,7 @@ contract FlightSuretyApp {
     function fetchFlightStatus
                         (
                             address airline,
-                            string calldata flight,
+                            string flight,
                             uint256 timestamp                            
                         )
                         external

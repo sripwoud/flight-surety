@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 src/dapp/config.json
 src/server/config.json
-dapp/
+/dapp/
 prod/
 
 # Runtime data
