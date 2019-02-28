@@ -24,7 +24,7 @@ contract FlightSuretyData {
     uint8 public registeredAirlinesCount;
     address public firstAirline;
 
-    address[] multiCalls = new address[](0);
+    address[] public multiCalls = new address[](0);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -77,10 +77,10 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier airlineRegistered() {
+    modifier airlineRegistered(address airlineAddress) {
         require(
-            airlines[msg.sender].registered == true,
-            "Airline must be registered  before being able to perform this action");
+            airlines[airlineAddress].registered == true,
+            "Airline must be registered before being able to perform this action");
         _;
     }
 
@@ -113,6 +113,9 @@ contract FlightSuretyData {
         authorizedCallers[callerAddress] = true;
     }
 
+    function threshold() internal view returns (uint threshold) {
+        threshold = registeredAirlinesCount.div(2);
+    }
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -122,16 +125,20 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */
-    function registerAirline(address airlineAddress)
+    function registerAirline
+    (
+        address airlineAddress,
+        address originAddress
+    )
     external
     requireIsOperational
     callerAuthorized
-    airlineRegistered
+    airlineRegistered(originAddress)
     {
         // only first Airline can register a new airline when less than 4 airlines are registered
         if (registeredAirlinesCount < 4) {
             require(
-                firstAirline == msg.sender,
+                firstAirline == originAddress,
                 "Less than 4 airlines registered: only first airline registered can register new ones");
             registeredAirlinesCount++;
             airlines[airlineAddress].registered = true;
@@ -139,15 +146,16 @@ contract FlightSuretyData {
             // multi party consensus
             bool isDuplicate = false;
             for (uint i=0; i < multiCalls.length; i++) {
-                if (multiCalls[i] == msg.sender) {
+                if (multiCalls[i] == originAddress) {
                     isDuplicate = true;
                     break;
                 }
             }
             require(!isDuplicate, "Caller cannot call this function twice");
-            multiCalls.push(msg.sender);
-            if (multiCalls.length > registeredAirlinesCount.div(2)) {
+            multiCalls.push(originAddress);
+            if (multiCalls.length >= threshold()) {
                 airlines[airlineAddress].registered = true;
+                registeredAirlinesCount++;
                 multiCalls = new address[](0);
             }
         }
@@ -196,7 +204,7 @@ contract FlightSuretyData {
     function fund()
     public
     requireIsOperational
-    airlineRegistered
+    // airlineRegistered
     payable
     {
     }
