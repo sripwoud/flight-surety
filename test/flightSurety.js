@@ -9,9 +9,13 @@ contract('Flight Surety Tests', async (accounts) => {
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address)
   })
 
+  it('First account is firstAirline', async () => {
+    assert.equal(config.firstAirline, accounts[1])
+  })
   /****************************************************************************************/
   /* Operations and Settings                                                              */
   /****************************************************************************************/
+  const minFund = web3.utils.toWei('10', 'ether')
 
   it('(Data Contract) Has correct initial isOperational() value', async function () {
     // Get operating status
@@ -61,14 +65,25 @@ contract('Flight Surety Tests', async (accounts) => {
     assert(await firstAirline.registered)
   })
 
-  it('((multiparty) Only first Airline can register an airline when less than 4 airlines are registered', async () => {
-    // Fail if airline not registered
+  it('(Data Contract) Before providing funding, an airline cannot register another one', async () => {
     try {
-      await config.flightSuretyApp.registerAirline(config.testAddresses[3], { from: accounts[4] })
+      await config.flightSuretyApp.registerAirline(accounts[2], { from: config.firstAirline })
     } catch (error) {
-      assert(error.message.includes('Airline must be registered'), 'Error wrong revert message')
+      assert(error.message.includes('Airline must provide funding'), 'Error: wrong revert message')
     }
+  })
 
+  it('(Data Contract) Airline can provide funding', async () => {
+    const balanceBefore = await web3.eth.getBalance(config.flightSuretyData.address)
+    await config.flightSuretyApp.fund({ from: config.firstAirline, value: minFund })
+    const airline = await config.flightSuretyData.airlines.call(config.firstAirline)
+    assert(airline.funded, 'Error: Airline funding should have been registered')
+    const balanceAfter = await web3.eth.getBalance(config.flightSuretyData.address)
+    assert.equal(+balanceBefore + minFund, +balanceAfter, 'Error: 10 ETH should have been transfered')
+  })
+
+
+  it('((multiparty) Only first Airline can register an airline when less than 4 airlines are registered', async () => {
     // register one other airline
     await config.flightSuretyApp.registerAirline(
       accounts[2],
@@ -76,11 +91,20 @@ contract('Flight Surety Tests', async (accounts) => {
     const airline = await config.flightSuretyData.airlines.call(accounts[2])
     assert(await airline.registered)
 
-    // Fail if not first airline as long as less than 4 airlines registered
+    // Third airline fails to register new airline because not registered
     try {
-      await config.flightSuretyApp.registerAirline(accounts[3], { from: accounts[2] })
+      await config.flightSuretyApp.registerAirline(config.testAddresses[3], { from: accounts[4] })
     } catch (error) {
-      assert(error.message.includes('Less than 4 airlines registered'), 'Error wrong revert message')
+      assert(error.message.includes('Airline must be registered'), `${error.message}`)
+    }
+
+    // second airline provides funding
+    await config.flightSuretyApp.fund({ from: accounts[2], value: minFund })
+    // Second airline can't register airline because not the first one
+    try {
+      await config.flightSuretyApp.registerAirline(config.testAddresses[3], { from: accounts[2] })
+    } catch (error) {
+      assert(error.message.includes('Less than 4 airlines registered'), `${error.message}`)
     }
   })
 
@@ -112,7 +136,6 @@ contract('Flight Surety Tests', async (accounts) => {
     airline = await config.flightSuretyData.airlines.call(accounts[5])
     assert(await airline.registered, 'Error: 5th airline was not registered')
   })
-
 
 /*
   it('(App Contract) Test var at deployment', async () => {
