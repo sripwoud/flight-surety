@@ -39,8 +39,8 @@
               <label class="form">Flight Reference
                 <input type="text" id="regFlightRef" required>
               </label>
-              <label class="form">Price
-                <input type="number" id="regFlightPrice" required>
+              <label class="form">Price (ETH)
+                <input type="number" id="regFlightPrice" required min='0'>
               </label>
               <label class="form">Take Off
                 <input type="datetime-local" id="regFlightTakeOff" required>
@@ -58,7 +58,7 @@
             </div>
             <div class="action">
               <label class="form">Amount
-                <input type="number" id="fundAmount">
+                <input type="number" id="fundAmount" min="10">
               </label>
               <btn class="btn btn-primary" id="fund">Provide funding</btn>
             </div>
@@ -74,7 +74,7 @@
                 </datalist>
               </label>
               <label class="form">Insurance amount
-                <input type="number" id="buyAmount">
+                <input type="number" id="buyAmount" min='0'>
               </label>
               <btn class="btn btn-primary" id="buy">Book Flight</btn>
             </div>

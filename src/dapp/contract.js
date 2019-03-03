@@ -66,6 +66,7 @@ export default class Contract {
   registerFlight (takeOff, landing, flight, price, callback) {
     let self = this
     let payload = {
+      address: self.account,
       takeOff: takeOff,
       landing: landing,
       flight: flight,
@@ -75,6 +76,18 @@ export default class Contract {
       .registerFlight(takeOff, landing, flight, price)
       .send({ from: self.account }, (error, result) => {
         callback(error, payload)
+      })
+  }
+
+  fund (amount, callback) {
+    let self = this
+    self.flightSuretyApp.methods
+      .fund()
+      .send({
+        from: self.account,
+        value: self.web3.utils.toWei(amount, 'ether')
+      }, (error, result) => {
+        callback(error, { address: self.account, amount: amount })
       })
   }
 }
