@@ -1,6 +1,8 @@
 
-var Test = require('../config/testConfig.js')
-var BigNumber = require('bignumber.js')
+const Test = require('../config/testConfig.js')
+const BigNumber = require('bignumber.js')
+const truffleAssert = require('truffle-assertions')
+const keccak256 = require('keccak256')
 
 contract('Flight Surety Tests', async (accounts) => {
   var config
@@ -138,16 +140,17 @@ contract('Flight Surety Tests', async (accounts) => {
   })
 
   it('(App contract) Airline can register a flight', async () => {
-    const key = await config.flightSuretyApp.registerFlight(
-      Date.now() + 1000,
-      Date.now() + 2000,
-      'FR0198',
-      '10',
+    const takeOff = Math.floor(Date.now() / 1000) + 1000
+    const tx = await config.flightSuretyApp.registerFlight(
+      takeOff,
+      takeOff + 1000,
+      '123',
+      '1000',
       { from: config.firstAirline })
 
-    const flight = await config.flightSuretyApp.flights(key)
-    console.log(flight)
-    // assert.equal(flight.isRegistered, true, 'Flight has not been registered')
+    truffleAssert.eventEmitted(tx, 'FlightRegistered', ev => {
+      return ev.ref === '123'
+    })
   })
 
 /*

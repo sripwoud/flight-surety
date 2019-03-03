@@ -58,6 +58,9 @@ contract FlightSuretyApp {
 
     mapping(bytes32 => Flight) public flights;
 
+    // ************** EVENTS *************
+    event FlightRegistered(string ref);
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -153,8 +156,7 @@ contract FlightSuretyApp {
     )
     external
     hasfunded
-    constant
-    returns (bytes32 flightKey)
+    returns (bytes32 flightKey, bool res)
     {
         require(_takeOff > now, "A flight cannot take off in the past");
         require(_landing > _takeOff, "A flight cannot land before taking off");
@@ -172,7 +174,8 @@ contract FlightSuretyApp {
 
         flightKey = keccak256(abi.encodePacked(msg.sender, _flight, _landing));
         flights[flightKey] = flight;
-
+        emit FlightRegistered(_flight);
+        res = true;
     }
 
    /**
