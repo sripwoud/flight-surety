@@ -23,9 +23,68 @@
 
         <div id="display-wrapper" class="top-20">
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        <div class='flexbox'>
+          <div class='user-menu'>
+            <h3>Oracles</h3>
+            <div class="action">
+              <label class="form">Flight
+                <input type="text" id="flight-number">
+              <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            </label>
+            </div>
+          </div>
+          <div class='user-menu'>
+            <h3>Airline</h3>
+            <div class="action">
+              <label class="form">Flight Reference
+                <input type="text" id="regFlightRef" required>
+              </label>
+              <label class="form">Price
+                <input type="number" id="regFlightPrice" required>
+              </label>
+              <label class="form">Take Off
+                <input type="datetime-local" id="regFlightTakeOff" required>
+              </label>
+              <label class="form">Landing
+                <input type="datetime-local" id="regFlightLanding" required>
+              </label>
+              <btn class="btn btn-primary" id="register-flight">Register Flight</btn>
+            </div>
+            <div class="action">
+              <label class="form">Airline (address)
+                <input type="text" id="regAirlineAddress">
+              </label>
+                <btn class="btn btn-primary" id="register-airline">Register Airline</btn>
+            </div>
+            <div class="action">
+              <label class="form">Amount
+                <input type="number" id="fundAmount">
+              </label>
+              <btn class="btn btn-primary" id="fund">Provide funding</btn>
+            </div>
+          </div>
+          <div class='user-menu'>
+            <h3>Passenger</h3>
+            <div class="action">
+              <label class="form">Flight
+                <input list="flights" id="buyFlight">
+                <datalist id="flights">
+                  <option value="Dummy1">
+                  <option value="Dummy2">
+                </datalist>
+              </label>
+              <label class="form">Insurance amount
+                <input type="number" id="buyAmount">
+              </label>
+              <btn class="btn btn-primary" id="buy">Book Flight</btn>
+            </div>
+            <div class="action">
+              <p>In case of delayed flight, get 1.5 X paid insurance fee</p>
+              <btn class="btn btn-primary" id="pay">Withdraw</btn>
+            </div>
+          </div>
         </div>
+
     </main>
 
 </body>

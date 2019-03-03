@@ -16,6 +16,21 @@ body {
     margin-top: 20px;
 }
 
+.action {
+  margin-top: 20px;
+}
+
+.flexbox {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.user-menu {
+  border: 2px solid #eee;
+  margin-top: 10px;
+  padding: 5px;
+}
+
 h5 {
     color: #999999;
 }
