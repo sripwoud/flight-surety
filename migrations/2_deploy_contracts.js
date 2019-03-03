@@ -1,14 +1,18 @@
 const FlightSuretyApp = artifacts.require('FlightSuretyApp')
 const FlightSuretyData = artifacts.require('FlightSuretyData')
 const fs = require('fs')
+const path = require('path')
 
 module.exports = function (deployer) {
-
+  var flightSuretyData, flightSuretyApp;
   let firstAirline = '0xf17f52151EbEF6C7334FAD080c5704D77216b732'
   deployer.deploy(FlightSuretyData, firstAirline)
-    .then(() => {
+    .then(instance => {
+      // get the deployed instance of flightSuretyData
+      flightSuretyData = instance
       return deployer.deploy(FlightSuretyApp, FlightSuretyData.address)
-        .then(() => {
+        .then(instance => {
+          flightSuretyApp = instance
           let config = {
             localhost: {
               url: 'http://localhost:8545',
@@ -16,8 +20,15 @@ module.exports = function (deployer) {
               appAddress: FlightSuretyApp.address
             }
           }
-          fs.writeFileSync(__dirname + '/../src/dapp/config.json',JSON.stringify(config, null, '\t'), 'utf-8')
-          fs.writeFileSync(__dirname + '/../src/server/config.json',JSON.stringify(config, null, '\t'), 'utf-8')
+          fs.writeFileSync(
+            path.join(__dirname, '/../src/dapp/config.json'),
+            JSON.stringify(config, null, '\t'),
+            'utf-8')
+          fs.writeFileSync(
+            path.join(__dirname, '/../src/server/config.json'),
+            JSON.stringify(config, null, '\t'),
+            'utf-8')
+          return flightSuretyData.authorizeCaller(flightSuretyApp.address)
         })
     })
 }
