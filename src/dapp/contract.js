@@ -28,7 +28,7 @@ export default class Contract {
     this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress)
     this.initialize(callback)
     this.account = null
-    this.account = null
+    this.flights = []
   }
 
   initialize (callback) {
@@ -58,6 +58,21 @@ export default class Contract {
     }
     self.flightSuretyApp.methods
       .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
+      .send({ from: self.account }, (error, result) => {
+        callback(error, payload)
+      })
+  }
+
+  registerFlight (takeOff, landing, flight, price, callback) {
+    let self = this
+    let payload = {
+      takeOff: takeOff,
+      landing: landing,
+      flight: flight,
+      price: price
+    }
+    self.flightSuretyApp.methods
+      .registerFlight(takeOff, landing, flight, price)
       .send({ from: self.account }, (error, result) => {
         callback(error, payload)
       })
