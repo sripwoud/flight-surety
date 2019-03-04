@@ -4,7 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract FlightSuretyData {
-    using SafeMath for uint8;
+    using SafeMath for uint;
 
     //////////////////////// DATA VARIABLES
 
@@ -22,7 +22,7 @@ contract FlightSuretyData {
     }
 
     mapping(address => Airline) public airlines;
-    uint8 public registeredAirlinesCount;
+    uint public registeredAirlinesCount;
     address public firstAirline;
 
     // Flights
@@ -47,7 +47,7 @@ contract FlightSuretyData {
 
 
     // Multi-party consensus
-    mapping(address => address[]) votes;
+    mapping(address => address[]) internal votes;
 
     ////////////////////////// EVENTS
 
@@ -139,6 +139,14 @@ contract FlightSuretyData {
     returns (bool _hasFunded)
     {
         _hasFunded = airlines[airlineAddress].funded;
+    }
+
+    function votesLeft (address airlineToBeAdded)
+    external
+    view
+    returns (uint numVotes)
+    {
+        numVotes = votes[airlineToBeAdded].length;
     }
 
     //////////////////////// SMART CONTRACT FUNCTIONS
