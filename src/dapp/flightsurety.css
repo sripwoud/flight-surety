@@ -53,6 +53,7 @@ section {
 
 .field-value {
     color: #0e7fa8;
+    overflow: auto;
 }
 
 label.form {
