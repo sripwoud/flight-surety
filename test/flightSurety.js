@@ -146,6 +146,8 @@ contract('Flight Surety Tests', async (accounts) => {
       takeOff + 1000,
       '123',
       '1000',
+      'Hamburg',
+      'Cebu',
       { from: config.firstAirline })
 
     truffleAssert.eventEmitted(tx, 'FlightRegistered', ev => {
