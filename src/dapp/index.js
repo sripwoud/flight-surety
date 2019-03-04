@@ -19,7 +19,22 @@ import './flightsurety.css'
       const flight = DOM.elid('flight-number').value
       // Write transaction
       contract.fetchFlightStatus(flight, (error, result) => {
-        display('Oracles', 'Trigger oracles', [{ label: 'Fetch Flight Status', error: error, value: `${result.flight} ${result.timestamp}` }])
+        display('Oracles', 'Triggered oracles', [{ label: 'Fetch Flight Status', error: error, value: `${result.flight} ${result.timestamp}` }])
+      })
+    })
+
+    // (airline) Register airline
+    DOM.elid('register-airline').addEventListener('click', () => {
+      const newAirline = DOM.elid('regAirlineAddress').value
+      contract.registerAirline(newAirline, (error, result) => {
+        display(
+          `Airline ${sliceAddress(result.airline)}`,
+          'Register Airline', [{
+            label: sliceAddress(result.newAirline),
+            error: error,
+            value: `needs ${result.additionalVotesRequired} further votes`
+          }]
+        )
       })
     })
 
@@ -40,10 +55,12 @@ import './flightsurety.css'
         to,
         (error, result) => {
           const textNoPrice = `${result.from} - ${result.to}: ${new Date(result.takeOff).toString().slice(0, -42)} - ${new Date(result.landing).toString().slice(0, -42)}`
-          display(`Airline ${result.address}`, 'Register Flight', [{
-            label: `${result.flight}`,
-            error: error,
-            value: `${textNoPrice}` }])
+          display(
+            `Airline ${sliceAddress(result.address)}`,
+            'Register Flight', [{
+              label: `${result.flight}`,
+              error: error,
+              value: `${textNoPrice}` }])
           let datalist = DOM.elid('flights')
           let option = DOM.option({ value: `${result.price} - ${textNoPrice}` })
           datalist.appendChild(option)
@@ -54,7 +71,7 @@ import './flightsurety.css'
     DOM.elid('fund').addEventListener('click', () => {
       let amount = DOM.elid('fundAmount').value
       contract.fund(amount, (error, result) => {
-        display(`Airline ${result.address}`, 'Provide Funding', [{
+        display(`Airline ${sliceAddress(result.address)}`, 'Provide Funding', [{
           label: 'Funding',
           error: error,
           value: `${result.amount} ETH` }])
@@ -75,4 +92,8 @@ function display (title, description, results) {
     section.appendChild(row)
   })
   displayDiv.append(section)
+}
+
+function sliceAddress (address) {
+  return `${address.slice(0, 5)}...${address.slice(-3)}`
 }

@@ -63,6 +63,20 @@ export default class Contract {
       })
   }
 
+  registerAirline (airline, callback) {
+    let self = this
+    let payload = {
+      airline: self.account,
+      newAirline: airline
+    }
+    self.flightSuretyApp.methods
+      .registerAirline(payload.newAirline)
+      .send({ from: self.account }, (error, result) => {
+        payload.additionalVotesRequired = result
+        callback(error, payload)
+      })
+  }
+
   registerFlight (takeOff, landing, flight, price, from, to, callback) {
     let self = this
     let payload = {
