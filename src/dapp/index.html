@@ -37,16 +37,22 @@
             <h3>Airline</h3>
             <div class="action border-bottom">
               <label class="form">Flight Reference
-                <input type="text" id="regFlightRef" required>
+                <input type="text" id="regFlightRef">
+              </label>
+              <label class="form">From
+                <input type="text" id="regFlightFrom">
+              </label>
+              <label class="form">To
+                <input type="text" id="regFlightTo">
               </label>
               <label class="form">Price (ETH)
-                <input type="number" id="regFlightPrice" required min='0'>
+                <input type="number" id="regFlightPrice" min='0'>
               </label>
               <label class="form">Take Off
-                <input type="datetime-local" id="regFlightTakeOff" required>
+                <input type="datetime-local" id="regFlightTakeOff">
               </label>
               <label class="form">Landing
-                <input type="datetime-local" id="regFlightLanding" required>
+                <input type="datetime-local" id="regFlightLanding">
               </label>
               <btn class="btn btn-primary" id="register-flight">Register Flight</btn>
             </div>

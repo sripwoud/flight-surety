@@ -35,6 +35,8 @@ contract FlightSuretyData {
         address airline;
         string flight;
         uint price;
+        string from;
+        string to;
     }
 
     mapping(bytes32 => Flight) public flights;
@@ -183,6 +185,8 @@ contract FlightSuretyData {
         uint _landing,
         string _flight,
         uint _price,
+        string _from,
+        string _to,
         address originAddress
     )
     external
@@ -199,9 +203,11 @@ contract FlightSuretyData {
             _takeOff,
             _landing,
             now,
-            msg.sender,
+            originAddress,
             _flight,
-            _price
+            _price,
+            _from,
+            _to
         );
 
         bytes32 flightKey = keccak256(abi.encodePacked(msg.sender, _flight, _landing));
