@@ -63,36 +63,40 @@ export default class Contract {
       })
   }
 
-  registerAirline (airline, callback) {
+  async registerAirline (airline) {
     let self = this
-    let payload = {
-      airline: self.account,
-      newAirline: airline
+    try {
+      await self.flightSuretyApp.methods
+        .registerAirline(airline)
+        .send({ from: self.account })
+      const votes = await self.flightSuretyApp.methods.votesLeft(airline).call()
+      return {
+        address: self.account,
+        votes: votes
+      }
+    } catch (error) {
+      return {
+        error: error
+      }
     }
-    self.flightSuretyApp.methods
-      .registerAirline(payload.newAirline)
-      .send({ from: self.account }, (error, result) => {
-        payload.additionalVotesRequired = result
-        callback(error, payload)
-      })
   }
 
-  registerFlight (takeOff, landing, flight, price, from, to, callback) {
+  async registerFlight (takeOff, landing, flight, price, from, to, callback) {
     let self = this
-    let payload = {
-      address: self.account,
-      from: from,
-      to: to,
-      takeOff: takeOff,
-      landing: landing,
-      flight: flight,
-      price: price
+    try {
+      await self.flightSuretyApp.methods
+        .registerFlight(takeOff, landing, flight, price, from, to)
+        .send({ from: self.account })
+      return {
+        address: self.account,
+        error: ''
+      }
+    } catch (error) {
+      return {
+        address: self.account,
+        error: error
+      }
     }
-    self.flightSuretyApp.methods
-      .registerFlight(takeOff, landing, flight, price, from, to)
-      .send({ from: self.account }, (error, result) => {
-        callback(error, payload)
-      })
   }
 
   fund (amount, callback) {

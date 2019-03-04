@@ -27,6 +27,8 @@ contract FlightSuretyData {
         address originAddress
     )
     external;
+
+    function votesLeft(address airlineToBeAdded) external view returns(uint);
 }
 
 
@@ -120,6 +122,11 @@ contract FlightSuretyApp {
     differentModeRequest(mode)
     {
         operational = mode;
+    }
+
+    function votesLeft(address airlineToBeAdded) external view returns (uint numVotes)
+    {
+        numVotes = flightSuretyData.votesLeft(airlineToBeAdded);
     }
 
     ///////////////////////////// SMART CONTRACT FUNCTIONS
