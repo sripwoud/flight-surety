@@ -6,32 +6,45 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyData {
     using SafeMath for uint8;
 
-    /********************************************************************************************/
-    /*                                       DATA VARIABLES                                     */
-    /********************************************************************************************/
+    //////////////////////// DATA VARIABLES
 
-    address private contractOwner;         // Account used to deploy contract
-    bool public operational = true;       // Blocks all state changes throughout the contract if false
+    // Account used to deploy contract
+    address private contractOwner;
+    // Blocks all state changes throughout the contract if false
+    bool public operational = true;
+    // List addresses allowed to call this contract
     mapping(address => bool) public authorizedCallers;
 
+    // Airlines
     struct Airline {
         bool registered;
         bool funded;
     }
 
     mapping(address => Airline) public airlines;
-
     uint8 public registeredAirlinesCount;
     address public firstAirline;
 
+    // Flights
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 takeOff;
+        uint256 landing;
+        uint256 updatedTimestamp;
+        address airline;
+        string flight;
+        uint price;
+    }
+
+    mapping(bytes32 => Flight) public flights;
+
+    // Multi-party consensus
     address[] public multiCalls = new address[](0);
-    /********************************************************************************************/
-    /*                                       EVENT DEFINITIONS                                  */
-    /********************************************************************************************/
-    /**
-    * @dev Constructor
-    *      The deploying account becomes contractOwner
-    */
+
+    ////////////////////////// EVENTS
+
+    ///////////////////////// CONSTRUCTOR
 
     constructor(address _firstAirline) public {
         contractOwner = msg.sender;
@@ -42,11 +55,7 @@ contract FlightSuretyData {
         airlines[firstAirline].registered = true;
     }
 
-    /********************************************************************************************/
-    /*                                       FUNCTION MODIFIERS                                 */
-    /********************************************************************************************/
-    // Modifiers help avoid duplication of code. They are typically used to validate something
-    // before a function is allowed to be executed.
+    ////////////////////////// MODIFIERS
     /**
     * @dev Modifier that requires the "operational" boolean variable to be "true"
     *      This is used on all state changing functions to pause the contract in
@@ -54,7 +63,8 @@ contract FlightSuretyData {
     */
     modifier requireIsOperational() {
         require(operational, "Contract is currently not operational");
-        _;  // All modifiers require an "_" which indicates where the function body will be added
+        // All modifiers require an "_" which indicates where the function body will be added
+        _;
     }
 
     /**
@@ -90,9 +100,7 @@ contract FlightSuretyData {
             "Airline must provide funding before being able to perform this action");
         _;
     }
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
+    /////////////////////////// UTILITY FUNCTIONS
     /**
     * @dev Sets contract operations on/off
     *
@@ -125,10 +133,8 @@ contract FlightSuretyData {
     {
         _hasFunded = airlines[airlineAddress].funded;
     }
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
 
+    //////////////////////// SMART CONTRACT FUNCTIONS
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
@@ -142,7 +148,7 @@ contract FlightSuretyData {
     external
     requireIsOperational
     callerAuthorized
-    airlineRegistered(originAddress)
+    airlineRegistered(originAddress) // redundant?
     airlineFunded(originAddress)
     {
         // only first Airline can register a new airline when less than 4 airlines are registered
@@ -169,6 +175,38 @@ contract FlightSuretyData {
                 multiCalls = new address[](0);
             }
         }
+    }
+
+    function registerFlight
+    (
+        uint _takeOff,
+        uint _landing,
+        string _flight,
+        uint _price,
+        address originAddress
+    )
+    external
+    requireIsOperational
+    callerAuthorized
+    airlineFunded(originAddress)
+    {
+        require(_takeOff > now, "A flight cannot take off in the past");
+        require(_landing > _takeOff, "A flight cannot land before taking off");
+
+        Flight memory flight = Flight(
+            true,
+            0,
+            _takeOff,
+            _landing,
+            now,
+            msg.sender,
+            _flight,
+            _price
+        );
+
+        bytes32 flightKey = keccak256(abi.encodePacked(msg.sender, _flight, _landing));
+        flights[flightKey] = flight;
+        // event emission via app contract
     }
 
 
