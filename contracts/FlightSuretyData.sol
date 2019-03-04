@@ -37,9 +37,14 @@ contract FlightSuretyData {
         uint price;
         string from;
         string to;
+        mapping(address => bool) passengers;
     }
 
     mapping(bytes32 => Flight) public flights;
+
+    // Insurances: list amount that can be be claimed by passenger
+    mapping(address => uint) public claims;
+
 
     // Multi-party consensus
     address[] public multiCalls = new address[](0);
@@ -209,9 +214,9 @@ contract FlightSuretyData {
             _from,
             _to
         );
-
-        bytes32 flightKey = keccak256(abi.encodePacked(msg.sender, _flight, _landing));
+        bytes32 flightKey = keccak256(abi.encodePacked(_flight, _to, _landing));
         flights[flightKey] = flight;
+        flights[flightKey].passengers[originAddress] = true;
         // event emission via app contract
     }
 
@@ -220,12 +225,13 @@ contract FlightSuretyData {
     * @dev Passenger Buys insurance for a flight
     *
     */
-    function buy()
+    function buy(address originAddress)
     external
     requireIsOperational
+    callerAuthorized
     payable
     {
-
+        claims[originAddress] = msg.value;
     }
 
     /**
