@@ -13,14 +13,13 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyData {
 
     function registerAirline(address airlineAddress, address originAddress) external;
-
     function fund(address originAddress) external payable;
 
     function registerFlight
     (
         uint takeOff,
         uint landing,
-        string light,
+        string flightRef,
         uint price,
         string from,
         string to,
@@ -28,6 +27,7 @@ contract FlightSuretyData {
     )
     external;
 
+    function buy(bytes32 flightKey, uint amount, address originAddress) external payable;
     function votesLeft(address airlineToBeAdded) external view returns(uint);
 }
 
@@ -149,39 +149,44 @@ contract FlightSuretyApp {
 
     function registerFlight
     (
-        uint _takeOff,
-        uint _landing,
-        string _flight,
-        uint _price,
-        string _from,
-        string _to
+        uint takeOff,
+        uint landing,
+        string flightRef,
+        uint price,
+        string from,
+        string to
     )
     external
     requireIsOperational
     {
         flightSuretyData.registerFlight(
-            _takeOff,
-            _landing,
-            _flight,
-            _price,
-            _from,
-            _to,
+            takeOff,
+            landing,
+            flightRef,
+            price,
+            from,
+            to,
             msg.sender
         );
-        emit FlightRegistered(_flight);
+        emit FlightRegistered(flightRef);
     }
 
-    function book
+    function buy
     (
         string _flight,
         string _to,
-        uint _landing
+        uint _landing,
+        uint amount
     )
     external
-    view
     requireIsOperational
+    payable
     {
-        // bytes32 = getFlightKey(_flight, _to, _landing);
+        require(amount > 0, "Insurance amount must be >= 0");
+        bytes32 flightKey= getFlightKey(_flight, _to, _landing);
+
+        flightSuretyData.buy.value(msg.value)(flightKey, amount, msg.sender);
+
 
     }
 
@@ -318,15 +323,15 @@ contract FlightSuretyApp {
 
     function getFlightKey
     (
-        address airline,
-        string flight,
+        string flightRef,
+        string destination,
         uint256 timestamp
     )
     internal
     pure
     returns(bytes32)
     {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return keccak256(abi.encodePacked(flightRef, destination, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
