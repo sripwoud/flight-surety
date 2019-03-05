@@ -167,7 +167,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   it('(passenger) Can book a flight and subscribe an insurance', async () => {
     // console.log(config.testAddresses[3])
-    await config.flightSuretyApp.buy(
+    await config.flightSuretyApp.book(
       flightRef,
       to,
       landing,
@@ -181,5 +181,10 @@ contract('Flight Surety Tests', async (accounts) => {
       accounts[9]
     )
     assert(paxOnFlight, 'Flight booking unsuccessful')
+    const insurance = await config.flightSuretyData.withdrawals.call(accounts[9])
+    assert.equal(
+      +insurance,
+      Math.floor(10 * 3 / 2),
+      'Insurance amount not credited correctly')
   })
 })
