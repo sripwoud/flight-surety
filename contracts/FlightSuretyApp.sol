@@ -28,6 +28,7 @@ contract FlightSuretyData {
     external;
 
     function book(bytes32 flightKey, uint amount, address originAddress) external payable;
+    function pay(address originAddress) external;
     function votesLeft(address airlineToBeAdded) external view returns(uint);
 }
 
@@ -82,7 +83,7 @@ contract FlightSuretyApp {
 
     /////////////////////////////// EVENTS
     event FlightRegistered(string ref);
-
+    event withdrawRequest(address recipient);
     /////////////////////////////// MODIFIERS
 
     // Contract "pausing" functionality
@@ -191,6 +192,14 @@ contract FlightSuretyApp {
         bytes32 flightKey= getFlightKey(_flight, _to, _landing);
 
         flightSuretyData.book.value(msg.value)(flightKey, amount.mul(3).div(2), msg.sender);
+    }
+
+    function withdraw()
+    external
+    requireIsOperational
+    {
+        flightSuretyData.pay(msg.sender);
+        emit withdrawRequest(msg.sender);
     }
 
    //Called after oracle has updated flight status
