@@ -175,7 +175,7 @@ contract('Flight Surety Tests', async (accounts) => {
       insurancePayment,
       {
         from: accounts[9],
-        value: (+ticketPrice + (+insurancePayment) * 2) // somehow needed to send more to cover tx costs??
+        value: +ticketPrice + +insurancePayment
       }
     )
     const paxOnFlight = await config.flightSuretyData.paxOnFlight.call(
