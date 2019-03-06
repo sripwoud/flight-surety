@@ -30,6 +30,8 @@ contract FlightSuretyData {
     function book(bytes32 flightKey, uint amount, address originAddress) external payable;
     function pay(address originAddress) external;
     function votesLeft(address airlineToBeAdded) external view returns(uint);
+
+    function getFlightPrice(bytes32 flightKey) external view returns (uint);
 }
 
 
@@ -115,6 +117,17 @@ contract FlightSuretyApp {
         require(val > low, "Value lower than min allowed");
         _;
     }
+
+    modifier paidEnough(uint _price) {
+        require(msg.value >= _price, "Value sent does not cover the price!");
+        _;
+    }
+
+    modifier checkValue(uint _price) {
+        uint amountToReturn = msg.value - _price;
+        msg.sender.transfer(amountToReturn);
+        _;
+    }
     //////////////////////////////// CONSTRUCTOR
 
     constructor(address dataContractAddress) public {
@@ -186,6 +199,8 @@ contract FlightSuretyApp {
     )
     external
     valWithinRange(amount, 0, 1 ether)
+    paidEnough(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
+    checkValue(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
     requireIsOperational
     payable
     {
