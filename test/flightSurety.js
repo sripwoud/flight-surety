@@ -193,12 +193,22 @@ contract('Flight Surety Tests', async (accounts) => {
   })
 
   it('(withdraw function) Passenger (if insured flight is delayed) or airline (for paid flight tickets) can withdraw their credited money', async () => {
-    const balanceBefore = await web3.eth.getBalance(accounts[9])
-    const tx = await config.flightSuretyApp.withdraw({ from: accounts[9] })
-    const balanceAfter = await web3.eth.getBalance(accounts[9])
+    // Passenger can withdraw
+    let balanceBefore = await web3.eth.getBalance(accounts[9])
+    let tx = await config.flightSuretyApp.withdraw({ from: accounts[9] })
+    let balanceAfter = await web3.eth.getBalance(accounts[9])
     assert(+balanceBefore < +balanceAfter, 'Error')
     truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
       return ev.recipient === accounts[9]
+    })
+
+    // Airline can withdraw
+    balanceBefore = await web3.eth.getBalance(config.firstAirline)
+    tx = await config.flightSuretyApp.withdraw({ from: config.firstAirline })
+    balanceAfter = await web3.eth.getBalance(config.firstAirline)
+    assert(+balanceBefore < +balanceAfter, 'Error')
+    truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
+      return ev.recipient === config.firstAirline
     })
   })
 })
