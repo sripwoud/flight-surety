@@ -4,7 +4,7 @@ var mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble s
 module.exports = {
   networks: {
     develop: {
-      accounts: 20
+      accounts: 50
     },
     development: {
       provider: function () {
