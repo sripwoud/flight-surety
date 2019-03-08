@@ -4,6 +4,14 @@ const truffleAssert = require('truffle-assertions')
 //var BigNumber = require('bignumber.js')
 
 contract('Oracles', async (accounts) => {
+  const takeOff = Math.floor(Date.now() / 1000) + 1000
+  const timestamp = takeOff + 1000
+  const from = 'HAM'
+  const destination = 'PAR'
+  const flight = 'AF0187'
+  const ticketPrice = web3.utils.toWei('0.5', 'ether')
+  const insurancePayment = web3.utils.toWei('0.1', 'ether')
+
   const TEST_ORACLES_COUNT = 20
   const STATUS_CODE_UNKNOWN = 0
   const STATUS_CODE_ON_TIME = 10
@@ -11,6 +19,7 @@ contract('Oracles', async (accounts) => {
   const STATUS_CODE_LATE_WEATHER = 30
   const STATUS_CODE_LATE_TECHNICAL = 40
   const STATUS_CODE_LATE_OTHER = 50
+
   function statusText (code) {
     let result
     switch (code) {
@@ -40,6 +49,31 @@ contract('Oracles', async (accounts) => {
 
   before('setup contract', async () => {
     config = await Test.Config(accounts)
+    // authorize app contract
+    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address)
+    // provide funding
+    await config.flightSuretyApp.fund({ from: config.firstAirline, value: web3.utils.toWei('10', 'ether') })
+    // register flight
+    await config.flightSuretyApp.registerFlight(
+      takeOff,
+      timestamp,
+      flight,
+      ticketPrice,
+      from,
+      destination,
+      { from: config.firstAirline })
+
+    // book flight
+    config.flightSuretyApp.book(
+      flight,
+      destination,
+      timestamp,
+      insurancePayment,
+      {
+        from: accounts[9],
+        value: +ticketPrice + +insurancePayment
+      }
+    )
   })
 
   it('can register oracles', async () => {
@@ -64,22 +98,19 @@ contract('Oracles', async (accounts) => {
     }
   })
 
-  it('can request flight status', async () => {
-    const flight = 'ND1309' // Course number
-    const timestamp = Math.floor(Date.now() / 1000)
-
+  it('can request flight status, process it and credit insuree', async () => {
     // Submit a request for oracles to get status information for a flight
     const tx = await config.flightSuretyApp.fetchFlightStatus(
-      config.firstAirline,
       flight,
+      destination,
       timestamp)
     truffleAssert.eventEmitted(
       tx,
       'OracleRequest',
       ev => {
-        console.log(`OracleRequest: index ${+ev.index}, airline ${ev.airline}, flight ${ev.flight}, timestamp ${+ev.timestamp}`)
+        console.log(`OracleRequest: index ${+ev.index}, flight ${ev.flight}, destination ${ev.destination}, timestamp ${+ev.timestamp}`)
         return ev.flight === flight &
-        ev.airline === config.firstAirline &
+        ev.destination === destination &
         +ev.timestamp === timestamp
       },
       'OracleRequest event test: wrong event/event args')
@@ -94,20 +125,22 @@ contract('Oracles', async (accounts) => {
           // Submit a response...it will only be accepted if there is an Index match
           const tx = await config.flightSuretyApp.submitOracleResponse(
             oracleIndexes[idx],
-            config.firstAirline,
             flight,
+            destination,
             timestamp,
             STATUS_CODE_ON_TIME,
             { from: accounts[a] })
 
+          // const events = tx.logs
+          // console.log(events[1])
           // Check OracleReport event, emitted if index match
           truffleAssert.eventEmitted(
             tx,
             'OracleReport',
             ev => {
-              console.log(`OracleReport: airline ${ev.airline}, flight ${ev.flight}, timestamp ${+ev.timestamp}, status ${statusText(STATUS_CODE_ON_TIME)}`)
-              return ev.airline === config.firstAirline &
-              ev.flight === flight &
+              console.log(`OracleReport: flight ${ev.flight}, destination ${ev.destination}, timestamp ${+ev.timestamp}, status ${statusText(STATUS_CODE_ON_TIME)}`)
+              return ev.flight === flight &
+              ev.destination === destination &
               +ev.timestamp === timestamp &
               +ev.status === STATUS_CODE_ON_TIME
             },
@@ -119,24 +152,35 @@ contract('Oracles', async (accounts) => {
             tx,
             'FlightStatusInfo',
             ev => {
-              console.log(`FlightStatusInfo: airline ${ev.airline}, flight ${ev.flight}, timestamp ${+ev.timestamp}, status ${statusText(STATUS_CODE_ON_TIME)}`)
-              return ev.airline === config.firstAirline &
-              ev.flight === flight &
+              console.log(`FlightStatusInfo: flight ${ev.flight}, destination ${ev.destination}, timestamp ${+ev.timestamp}, status ${statusText(STATUS_CODE_ON_TIME)}`)
+              return ev.flight === flight &
+              ev.destination === destination &
               +ev.timestamp === timestamp &
               +ev.status === STATUS_CODE_ON_TIME
             },
             'FlightStatusInfo event test: wrong event/event args'
           )
+
+          truffleAssert.eventEmitted(tx, 'FlightProcessed', ev => {
+            console.log(`FlightProcessed`)
+            return ev.flight === flight
+          })
         } catch (e) {
           // Enable this when debugging
-          // console.log('\n')
-          // console.log('---------------------')
-          // console.log(e)
+          // console.log(e.message)
           // console.log('--------------------')
-          // console.log('\n')
           // console.log('\nError', idx, oracleIndexes[idx].toNumber(), flight, timestamp)
         }
       }
     }
+  })
+
+  it('(passenger) Can withdraw credited insurance amount', async () => {
+    // withdrawal
+    const balanceBefore = await web3.eth.getBalance(accounts[9])
+    await config.flightSuretyApp.withdraw({ from: accounts[9] })
+    const balanceAfter = await web3.eth.getBalance(accounts[9])
+
+    assert(+balanceBefore < +balanceAfter, 'Passenger withdrawal failed')
   })
 })

@@ -132,6 +132,14 @@ contract FlightSuretyData {
         require(val > low, "Value lower than min allowed");
         _;
     }
+
+    /* do not process a flight more than once,
+    which could e.g result in the passengers being credited their insurance amount twice.
+    */
+    modifier notYetProcessed(bytes32 flightKey) {
+        require(flights[flightKey].statusCode == 0, 'This flight has already been processed');
+        _;
+    }
     /////////////////////////// UTILITY FUNCTIONS
     /**
     * @dev Sets contract operations on/off
@@ -327,7 +335,6 @@ contract FlightSuretyData {
     function creditInsurees(bytes32 flightKey)
     internal
     requireIsOperational
-    // callerAuthorized
     flightRegistered(flightKey)
     {
         // get flight
@@ -374,23 +381,27 @@ contract FlightSuretyData {
         airlines[originAddress].funded = true;
     }
 
-    // function processFlightStatus
-    // (
-    //     bytes32 flightKey,
-    //     uint status
-    // )
-    // external
-    // flightRegistered(flightKey)
-    // requireIsOperational
-    // callerAuthorized
-    // {
-    //     // Check (modifiers)
-    //     Flight memory flight = flights[flightKey];
-    //     // Effect
-    //     flight.statusCode = status;
-    //     // Interact
-    //     creditInsurees(flightKey);
-    // }
+    function processFlightStatus
+    (
+        bytes32 flightKey,
+        uint8 statusCode
+    )
+    external
+    flightRegistered(flightKey)
+    requireIsOperational
+    callerAuthorized
+    notYetProcessed(flightKey)
+    {
+        // Check (modifiers)
+        Flight memory flight = flights[flightKey];
+        // Effect
+        flight.statusCode = statusCode;
+        // Interact
+        // 10 = "flight delay due to airline"
+        if (statusCode == 10) {
+            creditInsurees(flightKey);
+        }
+    }
 
     /**
     * @dev Fallback function for funding smart contract.

@@ -33,7 +33,7 @@ contract FlightSuretyData {
 
     function getFlightPrice(bytes32 flightKey) external view returns (uint);
 
-    function processFlightStatus(bytes32 flightKey, uint status)  external;
+    function processFlightStatus(bytes32 flightKey, uint8 status)  external;
 }
 
 
@@ -268,7 +268,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 3;
+    uint8 private constant MIN_RESPONSES = 3;
 
     struct Oracle {
         bool isRegistered;
@@ -288,7 +288,7 @@ contract FlightSuretyApp {
     }
 
     // Track all oracle responses
-    // Key = hash(index, flight, timestamp)
+    // Key = hash(index, flight, destination, timestamp)
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
     event OracleRegistered(uint8[3] indexes);
@@ -352,16 +352,15 @@ contract FlightSuretyApp {
             "Flight or timestamp do not match oracle request. Or request is closed (enough responses received)");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
-
-        // Information isn't considered verified until at least MIN_RESPONSES
-        // oracles respond with the *** same *** information
         emit OracleReport(flight, destination, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
+        /* Information isn't considered verified until at least
+        MIN_RESPONSES oracles respond with the *** same *** information
+        */
+        if (oracleResponses[key].responses[statusCode].length == MIN_RESPONSES) {
             // close responseInfo
             oracleResponses[key].isOpen = false;
             emit FlightStatusInfo(flight, destination, timestamp, statusCode);
-
             // Handle flight status as appropriate
             processFlightStatus(flight, destination, timestamp, statusCode);
         }
