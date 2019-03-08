@@ -198,22 +198,31 @@ contract('Flight Surety Tests', async (accounts) => {
   })
 
   it('(withdraw function) Airline can withdraw their credited amount (from bought flight tickets)', async () => {
-    // Passenger can withdraw
-    let balanceBefore = await web3.eth.getBalance(config.firstAirline)
-    let tx = await config.flightSuretyApp.withdraw({ from: config.firstAirline })
-    let balanceAfter = await web3.eth.getBalance(config.firstAirline)
-    assert(+balanceBefore < +balanceAfter, 'Withdrawal failed')
-    truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
-      return ev.recipient === config.firstAirline
-    })
-
-    // Airline can withdraw
     balanceBefore = await web3.eth.getBalance(config.firstAirline)
     tx = await config.flightSuretyApp.withdraw({ from: config.firstAirline })
     balanceAfter = await web3.eth.getBalance(config.firstAirline)
-    assert(+balanceBefore < +balanceAfter, 'Error')
+    assert(+balanceBefore < +balanceAfter, 'Airline withdrawal failed')
     truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
       return ev.recipient === config.firstAirline
     })
+  })
+
+  it('(data contract) Can credit a passenger his insurance amount. Passsenger can then withdraw this amount', async () => {
+    try {
+      // should fail: nothing credited yet
+      await config.flightSuretyApp.withdraw({ from: accounts[9] })
+    } catch (error) {
+      assert(error.message.includes('No amount to be transferred'))
+    }
+
+    // assuming oracles reported a flight was delayed, credit passenger
+    const flightKey = await config.flightSuretyData.getFlightKey(flightRef, to, landing)
+    await config.flightSuretyData.creditInsurees(flightKey)
+    // withdraw
+    const balanceBefore = await web3.eth.getBalance(accounts[9])
+    await config.flightSuretyApp.withdraw({ from: accounts[9] })
+    const balanceAfter = await web3.eth.getBalance(accounts[9])
+
+    assert(+balanceBefore < +balanceAfter, 'Passenger withdrawal failed')
   })
 })

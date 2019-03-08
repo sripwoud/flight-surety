@@ -325,9 +325,9 @@ contract FlightSuretyData {
     }
 
     function creditInsurees(bytes32 flightKey)
-    external
+    internal
     requireIsOperational
-    callerAuthorized
+    // callerAuthorized
     flightRegistered(flightKey)
     {
         // get flight
@@ -348,7 +348,7 @@ contract FlightSuretyData {
     requireIsOperational
     callerAuthorized
     {
-        // Check Effect Interaction pattern to protect against re entry attack
+        // Check-Effect-Interaction pattern to protect against re entrancy attack
         // Check
         require(withdrawals[originAddress] > 0, "No amount to be transferred to this address");
         // Effect
@@ -384,8 +384,12 @@ contract FlightSuretyData {
     // requireIsOperational
     // callerAuthorized
     // {
+    //     // Check (modifiers)
     //     Flight memory flight = flights[flightKey];
+    //     // Effect
     //     flight.statusCode = status;
+    //     // Interact
+    //     creditInsurees(flightKey);
     // }
 
     /**
