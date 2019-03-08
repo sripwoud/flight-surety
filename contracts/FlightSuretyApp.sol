@@ -32,6 +32,8 @@ contract FlightSuretyData {
     function votesLeft(address airlineToBeAdded) external view returns(uint);
 
     function getFlightPrice(bytes32 flightKey) external view returns (uint);
+
+    function processFlightStatus(bytes32 flightKey, uint status)  external;
 }
 
 
@@ -220,14 +222,29 @@ contract FlightSuretyApp {
    //Called after oracle has updated flight status
     function processFlightStatus
     (
-        address airline,
-        string memory flight,
+        string flightRef,
+        string destination,
         uint256 timestamp,
         uint8 statusCode
     )
     internal
+    // requireIsOperational
     pure
     {
+        // Check --> modifier and visibility
+
+        // Effects
+        // generate OracleRequest key
+        // bytes32 requestKey = getOracleResponseKey(
+
+        // )
+        // get oracleResponse
+        // update responseInfo.isOpen to false
+
+        // Interaction
+        // generate flightKey
+        // bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
+        // flightSuretyData.processFlightStatus(flightKey);
     }
 
 
@@ -339,7 +356,9 @@ contract FlightSuretyApp {
 
 
         bytes32 key = getOracleResponseKey(index, airline, flight, timestamp);
-        require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
+        require(
+            oracleResponses[key].isOpen,
+            "Flight or timestamp do not match oracle request. Or request is closed (enough responses received)");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
 
@@ -348,10 +367,12 @@ contract FlightSuretyApp {
         emit OracleReport(airline, flight, timestamp, statusCode);
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
+            // close responseInfo
+            oracleResponses[key].isOpen = false;
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
             // Handle flight status as appropriate
-            processFlightStatus(airline, flight, timestamp, statusCode);
+            // processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
 
