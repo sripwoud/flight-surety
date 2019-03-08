@@ -92,7 +92,7 @@ contract('Flight Surety Tests', async (accounts) => {
   })
 
 
-  it('((multiparty) Only first Airline can register an airline when less than 4 airlines are registered', async () => {
+  it('(multiparty) Only first Airline can register an airline when less than 4 airlines are registered', async () => {
     // register one other airline
     await config.flightSuretyApp.registerAirline(
       accounts[2],
@@ -202,27 +202,10 @@ contract('Flight Surety Tests', async (accounts) => {
     tx = await config.flightSuretyApp.withdraw({ from: config.firstAirline })
     balanceAfter = await web3.eth.getBalance(config.firstAirline)
     assert(+balanceBefore < +balanceAfter, 'Airline withdrawal failed')
-    truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
+    truffleAssert.eventEmitted(tx, 'WithdrawRequest', ev => {
       return ev.recipient === config.firstAirline
     })
   })
 
-  it('(data contract) Can credit a passenger his insurance amount. Passsenger can then withdraw this amount', async () => {
-    try {
-      // should fail: nothing credited yet
-      await config.flightSuretyApp.withdraw({ from: accounts[9] })
-    } catch (error) {
-      assert(error.message.includes('No amount to be transferred'))
-    }
-
-    // assuming oracles reported a flight was delayed, credit passenger
-    const flightKey = await config.flightSuretyData.getFlightKey(flightRef, to, landing)
-    await config.flightSuretyData.creditInsurees(flightKey)
-    // withdraw
-    const balanceBefore = await web3.eth.getBalance(accounts[9])
-    await config.flightSuretyApp.withdraw({ from: accounts[9] })
-    const balanceAfter = await web3.eth.getBalance(accounts[9])
-
-    assert(+balanceBefore < +balanceAfter, 'Passenger withdrawal failed')
-  })
+  // Insurance payment in oracles.js
 })
