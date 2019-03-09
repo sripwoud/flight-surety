@@ -4,6 +4,7 @@ import Config from './config.json'
 import Web3 from 'web3'
 import express from 'express'
 require('babel-polyfill')
+const bodyParser = require('body-parser')
 
 let config = Config['localhost']
 let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')))
@@ -15,6 +16,7 @@ const NUMBER_OF_ORACLES = 30
 
 const Server = {
   oracles: [],
+  flights: [],
   states: {
     0: 'unknow',
     10: 'on time',
@@ -37,12 +39,15 @@ const Server = {
         const { event, returnValues: indexes } = log
         console.log(`${event}: indexes ${indexes[0]}`)
       })
-      // REDUNDANT: already displayed on front end
     // flightSuretyApp.events.FlightRegistered()
     //   .on('error', error => { console.log(error) })
     //   .on('data', log => {
     //     const { flightRef, to, landing } = log.returnValues
-    //     console.log(`FlightRegistered: ${flightRef} lading in ${to} at ${landing}`)
+    //     this.flights.push({
+    //       flight: flightRef,
+    //       to: to,
+    //       landing: landing
+    //     })
     //   })
     // flightSuretyData.events.Funded()
     //   .on('error', error => { console.log(error) })
@@ -75,13 +80,25 @@ const Server = {
 
 Server.init(NUMBER_OF_ORACLES)
 
-
-
 const app = express()
+app.use(bodyParser.json())
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  next()
+})
+app.use(express.json())
+// app.use(bodyParser.urlencoded({ extended: true }))
 app.get('/api', (req, res) => {
   res.send({
     message: 'An API for use with your Dapp!'
   })
+})
+app.get('/flights', (req, res) => {
+  res.send(Server.flights)
+})
+app.post('/flights', (req, res) => {
+  Server.flights.push(req.body)
 })
 
 export default app
