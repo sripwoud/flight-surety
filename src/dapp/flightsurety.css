@@ -1,5 +1,5 @@
 #title {
-  color: #f23f52;
+  color: #f2853f;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -15,7 +15,7 @@ body {
 }
 
 h3 {
-  color: #f23f52;
+  color: #f2853f;
   font-weight: 900;
 }
 
@@ -87,6 +87,6 @@ btn {
   width: 100%;
 }
 .btn-primary {
-  background-color: #f23f52;
-  border-color: #f23f52;
+  background-color: #f2853f;
+  border-color: #f2853f;
 }
