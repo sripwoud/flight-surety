@@ -37,18 +37,6 @@ const Server = {
         const { event, returnValues: indexes } = log
         console.log(`${event}: indexes ${indexes[0]}`)
       })
-    flightSuretyApp.events.OracleRequest()
-      .on('error', error => { console.log(error) })
-      .on('data', log => {
-        const { event, returnValues: { index, flight, destination, timestamp } } = log
-        console.log(`${event}: index ${index}, flight ${flight}, destination ${destination}, landing ${timestamp}`)
-      })
-    flightSuretyApp.events.OracleRegistered()
-      .on('error', error => { console.log(error) })
-      .on('data', log => {
-        const { event, returnValues: indexes } = log
-        console.log(`${event}: indexes ${indexes[0]}`)
-      })
       // REDUNDANT: already displayed on front end
     // flightSuretyApp.events.FlightRegistered()
     //   .on('error', error => { console.log(error) })
