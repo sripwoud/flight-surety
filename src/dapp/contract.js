@@ -128,15 +128,24 @@ export default class Contract {
       })
   }
 
-  async getFlight (flightRef, to, landing) {
+  async book (flight, to, landing, price, insurance) {
     let self = this
+    let total = +price + +insurance
+    total = total.toString()
+    const amount = self.web3.utils.toWei(insurance.toString(), 'ether')
     try {
-      const flightKey = await self.flightSuretyData.methods.getFlightKey(flightRef, to, landing).call({ from: self.account })
-      console.log(flightKey)
-      const flight = await self.flightSuretyData.flights().call(flightKey)
-      return flight
+      await self.flightSuretyApp.methods
+        .book(flight, to, landing, amount)
+        .send({
+          from: self.account,
+          value: self.web3.utils.toWei(total.toString(), 'ether')
+        })
+      return { passenger: self.account }
     } catch (error) {
       console.log(error)
+      return {
+        error: error
+      }
     }
   }
 }

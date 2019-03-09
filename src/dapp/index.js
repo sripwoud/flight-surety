@@ -23,7 +23,7 @@ import './flightsurety.css'
           flights.forEach(flight => {
             // append flight to passenger selection list
             let datalist = DOM.elid('flights')
-            let option = DOM.option({ value: `${flight.price} ETH - ${flight.from} ${parseDate(flight.takeOff)} - ${flight.to} ${parseDate(flight.landing)}` })
+            let option = DOM.option({ value: `${flight.price} ETH - ${flight.flight} - ${flight.from} - ${parseDate(flight.takeOff)} - ${flight.to} - ${parseDate(flight.landing)}` })
             datalist.appendChild(option)
             // append to oracle submission list
             datalist = DOM.elid('oracle-requests')
@@ -99,6 +99,30 @@ import './flightsurety.css'
           error: error,
           value: `${result.amount} ETH` }])
       })
+    })
+
+    // Book flight
+    DOM.elid('buy').addEventListener('click', async () => {
+      // destructure and get args
+      let input = DOM.elid('buyFlight').value
+      input = input.split('-')
+      input = input.map(el => { return el.trim() })
+      const price = input[0].slice(0, -4)
+      const flight = input[1]
+      const to = input[4]
+      const landing = new Date(input[5]).getTime()
+      const insurance = DOM.elid('buyAmount').value
+      // execute transaction
+      const { passenger, error } = await contract.book(flight, to, landing, price, insurance)
+      display(
+        `Passenger ${sliceAddress(passenger)}`,
+        'Book flight',
+        [{
+          label: `${flight} to ${to} lands at ${landing}`,
+          error: error,
+          value: `insurance: ${insurance} ETH`
+        }]
+      )
     })
   })
 })()
