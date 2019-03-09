@@ -163,7 +163,7 @@ contract('Flight Surety Tests', async (accounts) => {
     assert(flight.isRegistered, 'Error: flight was not registered')
     assert.equal(flight.price, ticketPrice)
     truffleAssert.eventEmitted(tx, 'FlightRegistered', ev => {
-      return ev.ref === flightRef
+      return ev.flightRef === flightRef
     })
   })
 
