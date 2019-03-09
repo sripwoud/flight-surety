@@ -30,7 +30,6 @@ export default class Contract {
     this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.appAddress)
     this.initialize(callback)
     this.account = null
-    this.flights = []
   }
 
   initialize (callback) {
@@ -51,18 +50,22 @@ export default class Contract {
       .call({ from: self.account }, callback)
   }
 
-  fetchFlightStatus (flight, callback) {
+  async fetchFlightStatus (flight, destination, landing, callback) {
     let self = this
-    let payload = {
-      airline: self.account,
-      flight: flight,
-      timestamp: Math.floor(Date.now() / 1000)
+    try {
+      await self.flightSuretyApp.methods
+        .fetchFlightStatus(flight, destination, landing)
+        .send({ from: self.account })
+      return {
+        flight: flight,
+        to: destination,
+        landing: landing
+      }
+    } catch (error) {
+      return {
+        error: error
+      }
     }
-    self.flightSuretyApp.methods
-      .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-      .send({ from: self.account }, (error, result) => {
-        callback(error, payload)
-      })
   }
 
   async registerAirline (airline) {
@@ -89,6 +92,23 @@ export default class Contract {
       await self.flightSuretyApp.methods
         .registerFlight(takeOff, landing, flight, price, from, to)
         .send({ from: self.account })
+
+      // POST flight to server
+      fetch('http://localhost:3000/flights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          flight: flight,
+          from: from,
+          to: to,
+          takeOff: takeOff,
+          landing: landing,
+          price: price
+        })
+      })
+
       return {
         address: self.account,
         error: ''

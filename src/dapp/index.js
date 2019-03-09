@@ -13,13 +13,36 @@ import './flightsurety.css'
       display('Operational Status', 'Check if contract is operational', [{ label: 'Operational Status', error: error, value: result }])
     })
 
+    // fetch list of registered flights from server and add them to selection forms
+    fetch('http://localhost:3000/flights')
+      .then(res => {
+        return res.json()
+      })
+      .then(flights => {
+        flights.forEach(flight => {
+          // append flight to passenger selection list
+          let datalist = DOM.elid('flights')
+          let option = DOM.option({ value: `${flight.price} ETH - ${flight.from} ${parseDate(flight.takeOff)} - ${flight.to} ${parseDate(flight.landing)}` })
+          datalist.appendChild(option)
+          // append to oracle submission list
+          datalist = DOM.elid('oracle-requests')
+          option = DOM.option({ value: `${flight.flight} - ${flight.to} - ${parseDate(flight.landing)}` })
+          datalist.appendChild(option)
+        })
+      })
+
     // User-submitted transaction
     // Submit oracle request
     DOM.elid('submit-oracle').addEventListener('click', () => {
-      const flight = DOM.elid('flight-number').value
+      // destructure
+      let input = DOM.elid('flight-number').value.split('-')
+      input = input.map(el => { el.trim() })
+      let [flight, destination, landing] = input
+      landing = +landing
+
       // Write transaction
-      contract.fetchFlightStatus(flight, (error, result) => {
-        display('Oracles', 'Triggered oracles', [{ label: 'Fetch Flight Status', error: error, value: `${result.flight} ${result.timestamp}` }])
+      contract.fetchFlightStatus(flight, destination, landing, (error, result) => {
+        display('Oracles', 'Triggered oracles', [{ label: 'Fetch Flight Status', error: error, value: `${result.flight} ${result.to} ${result.timestamp}` }])
       })
     })
 
@@ -52,28 +75,13 @@ import './flightsurety.css'
         price,
         from,
         to)
-      const textNoPrice = `${from} - ${to}: ${new Date(takeOff).toString().slice(0, -42)} - ${new Date(landing).toString().slice(0, -42)}`
+      const textNoPrice = `${from} - ${to}: ${parseDate(takeOff)} - ${parseDate(landing)}`
       display(
         `Airline ${sliceAddress(address)}`,
         'Register Flight', [{
           label: `${flightRef}`,
           error: error,
           value: `${textNoPrice}` }])
-
-      // Append
-      if (!error) {
-        const flight = await contract.getFlight(flightRef, to, landing)
-        // append flight to passenger selection list
-        let datalist = DOM.elid('flights')
-        let option = DOM.option({ value: `${price} ETH - ${textNoPrice}` })
-        datalist.appendChild(option)
-        // append to oracle submission list
-        datalist = DOM.elid('oracle-requests')
-        option = DOM.option({ value: `${flightRef} - ${to} - ${landing}` })
-        datalist.appendChild(option)
-      } else {
-        console.error('Flight was not appended to selection lists')
-      }
     })
 
     // Provide funding
@@ -105,4 +113,8 @@ function display (title, description, results) {
 
 function sliceAddress (address) {
   return `${address.slice(0, 5)}...${address.slice(-3)}`
+}
+
+function parseDate(dateNum) {
+  return new Date(dateNum).toString().slice(0, -42)
 }
