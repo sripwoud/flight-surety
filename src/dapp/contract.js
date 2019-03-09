@@ -50,17 +50,12 @@ export default class Contract {
       .call({ from: self.account }, callback)
   }
 
-  async fetchFlightStatus (flight, destination, landing, callback) {
+  async fetchFlightStatus (flight, destination, landing) {
     let self = this
     try {
       await self.flightSuretyApp.methods
         .fetchFlightStatus(flight, destination, landing)
         .send({ from: self.account })
-      return {
-        flight: flight,
-        to: destination,
-        landing: landing
-      }
     } catch (error) {
       return {
         error: error
@@ -86,7 +81,7 @@ export default class Contract {
     }
   }
 
-  async registerFlight (takeOff, landing, flight, price, from, to, callback) {
+  async registerFlight (takeOff, landing, flight, price, from, to) {
     let self = this
     try {
       await self.flightSuretyApp.methods

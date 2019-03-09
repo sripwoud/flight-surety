@@ -14,36 +14,42 @@ import './flightsurety.css'
     })
 
     // fetch list of registered flights from server and add them to selection forms
-    fetch('http://localhost:3000/flights')
-      .then(res => {
-        return res.json()
-      })
-      .then(flights => {
-        flights.forEach(flight => {
-          // append flight to passenger selection list
-          let datalist = DOM.elid('flights')
-          let option = DOM.option({ value: `${flight.price} ETH - ${flight.from} ${parseDate(flight.takeOff)} - ${flight.to} ${parseDate(flight.landing)}` })
-          datalist.appendChild(option)
-          // append to oracle submission list
-          datalist = DOM.elid('oracle-requests')
-          option = DOM.option({ value: `${flight.flight} - ${flight.to} - ${parseDate(flight.landing)}` })
-          datalist.appendChild(option)
+    function fetchAndAppendFlights () {
+      fetch('http://localhost:3000/flights')
+        .then(res => {
+          return res.json()
         })
-      })
+        .then(flights => {
+          flights.forEach(flight => {
+            // append flight to passenger selection list
+            let datalist = DOM.elid('flights')
+            let option = DOM.option({ value: `${flight.price} ETH - ${flight.from} ${parseDate(flight.takeOff)} - ${flight.to} ${parseDate(flight.landing)}` })
+            datalist.appendChild(option)
+            // append to oracle submission list
+            datalist = DOM.elid('oracle-requests')
+            option = DOM.option({ value: `${flight.flight} - ${flight.to} - ${parseDate(flight.landing)}` })
+            datalist.appendChild(option)
+          })
+        })
+    }
+    fetchAndAppendFlights()
 
     // User-submitted transaction
     // Submit oracle request
-    DOM.elid('submit-oracle').addEventListener('click', () => {
+    DOM.elid('submit-oracle').addEventListener('click', async () => {
       // destructure
-      let input = DOM.elid('flight-number').value.split('-')
-      input = input.map(el => { el.trim() })
+      let input = DOM.elid('oracle-request').value
+      input = input.split('-')
+      input = input.map(el => { return el.trim() })
       let [flight, destination, landing] = input
-      landing = +landing
-
+      landing = new Date(landing).getTime()
       // Write transaction
-      contract.fetchFlightStatus(flight, destination, landing, (error, result) => {
-        display('Oracles', 'Triggered oracles', [{ label: 'Fetch Flight Status', error: error, value: `${result.flight} ${result.to} ${result.timestamp}` }])
-      })
+      const { error } = await contract.fetchFlightStatus(flight, destination, landing)
+      display('Oracles', 'Triggered oracles', [{
+        label: 'Fetch Flight Status',
+        error: error,
+        value: `${flight} ${destination} ${landing}`
+      }])
     })
 
     // (airline) Register airline
