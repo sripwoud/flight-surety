@@ -51,11 +51,10 @@ export default class Contract {
   }
 
   async fetchFlightStatus (flight, destination, landing) {
-    let self = this
     try {
-      await self.flightSuretyApp.methods
+      await this.flightSuretyApp.methods
         .fetchFlightStatus(flight, destination, landing)
-        .send({ from: self.account })
+        .send({ from: this.account })
     } catch (error) {
       return {
         error: error
@@ -64,14 +63,13 @@ export default class Contract {
   }
 
   async registerAirline (airline) {
-    let self = this
     try {
-      await self.flightSuretyApp.methods
+      await this.flightSuretyApp.methods
         .registerAirline(airline)
-        .send({ from: self.account })
-      const votes = await self.flightSuretyApp.methods.votesLeft(airline).call()
+        .send({ from: this.account })
+      const votes = await this.flightSuretyApp.methods.votesLeft(airline).call()
       return {
-        address: self.account,
+        address: this.account,
         votes: votes
       }
     } catch (error) {
@@ -82,11 +80,10 @@ export default class Contract {
   }
 
   async registerFlight (takeOff, landing, flight, price, from, to) {
-    let self = this
     try {
-      await self.flightSuretyApp.methods
+      await this.flightSuretyApp.methods
         .registerFlight(takeOff, landing, flight, price, from, to)
-        .send({ from: self.account })
+        .send({ from: this.account })
 
       // POST flight to server
       fetch('http://localhost:3000/flights', {
@@ -105,12 +102,12 @@ export default class Contract {
       })
 
       return {
-        address: self.account,
+        address: this.account,
         error: ''
       }
     } catch (error) {
       return {
-        address: self.account,
+        address: this.account,
         error: error
       }
     }
@@ -129,18 +126,17 @@ export default class Contract {
   }
 
   async book (flight, to, landing, price, insurance) {
-    let self = this
     let total = +price + +insurance
     total = total.toString()
-    const amount = self.web3.utils.toWei(insurance.toString(), 'ether')
+    const amount = this.web3.utils.toWei(insurance.toString(), 'ether')
     try {
-      await self.flightSuretyApp.methods
+      await this.flightSuretyApp.methods
         .book(flight, to, landing, amount)
         .send({
-          from: self.account,
-          value: self.web3.utils.toWei(total.toString(), 'ether')
+          from: this.account,
+          value: this.web3.utils.toWei(total.toString(), 'ether')
         })
-      return { passenger: self.account }
+      return { passenger: this.account }
     } catch (error) {
       console.log(error)
       return {
