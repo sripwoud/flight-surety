@@ -18,7 +18,7 @@ const Server = {
   oracles: [],
   flights: [],
   states: {
-    0: 'unknow',
+    0: 'unknown',
     10: 'on time',
     20: 'late due to airline',
     30: 'late due to weather',
@@ -87,6 +87,7 @@ const Server = {
         } = log
         console.log(`${event}: flight ${flight}, to ${destination}, landing ${timestamp}, status ${this.states[status]}`)
       })
+      .on('error', error => { console.log(error) })
 
     flightSuretyData.events.Funded()
       .on('data', log => {
@@ -128,24 +129,28 @@ const Server = {
     })
 
     // get and store existing flights
-    const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
-    for (let i = 0; i < indexFlightKeys + 1; i++) {
-      const key = await flightSuretyData.methods.flightKeys(i).call()
-      const flight = await flightSuretyData.methods.flights(key).call()
-      Server.flights.push(flight)
+    try {
+      const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
+      for (let i = 0; i < indexFlightKeys + 1; i++) {
+        const key = await flightSuretyData.methods.flightKeys(i).call()
+        const flight = await flightSuretyData.methods.flights(key).call()
+        Server.flights.push(flight)
+      }
+    } catch (error) {
+      // console.log('No flights to add')
     }
   },
 
   submitResponses: async function (flight, destination, timestamp) {
     this.oracles.forEach(async oracle => {
       // random answer
-      const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
-
+      // const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
+      const statusCode = 20
       // get indexes
       const oracleIndexes = await flightSuretyApp.methods.getMyIndexes().call({ from: oracle })
       oracleIndexes.forEach(async index => {
         try {
-          await flightSuretyApp.methods.submitOracleResponse(
+          const tx = await flightSuretyApp.methods.submitOracleResponse(
             index,
             flight,
             destination,
@@ -153,7 +158,7 @@ const Server = {
             statusCode
           ).send({ from: oracle })
         } catch (error) {
-          // console.log(error.message)
+          console.log(error.message)
         }
       })
     })
@@ -176,12 +181,13 @@ app.get('/api', (req, res) => {
     message: 'An API for use with your Dapp!'
   })
 })
+app.set('json spaces', 2)
 app.get('/flights', (req, res) => {
-  res.send(Server.flights)
+  res.json(Server.flights)
 })
 app.get('/balance/:address', async (req, res) => {
   const balance = await flightSuretyData.methods.withdrawals(req.params.address).call()
-  res.send(web3.utils.fromWei(balance.toString(), 'ether') + 'ETH')
+  res.send(web3.utils.fromWei(balance.toString(), 'ether') + ' ETH')
 })
 app.get('/flight/:ref.:dest.:landing', async (req, res) => {
   const key = await flightSuretyData.methods.getFlightKey(
@@ -191,6 +197,15 @@ app.get('/flight/:ref.:dest.:landing', async (req, res) => {
   ).call()
   const flight = await flightSuretyData.methods.flights(key).call()
   res.send(flight)
+})
+app.get('/response/:ref.:dest.:landing', async (req, res) => {
+  const key = await flightSuretyData.methods.getFlightKey(
+    req.params.ref,
+    req.params.dest,
+    req.params.landing
+  ).call()
+  const response = await flightSuretyApp.methods.oracleResponses(key).call()
+  res.send(response)
 })
 app.post('/flights', (req, res) => {
   Server.flights.push(req.body)
