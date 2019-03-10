@@ -170,6 +170,12 @@ contract('Oracles', async (accounts) => {
     }
   })
 
+  it('Request is closed after enough concurring answers have been received', async () => {
+    const key = await config.flightSuretyData.getFlightKey(flight, destination, timestamp)
+    const request = await config.flightSuretyApp.oracleResponses(key)
+    assert(!request.isOpen, 'Request should be closed')
+  })
+
   it('(passenger) Can withdraw credited insurance amount', async () => {
     // withdrawal
     const balanceBefore = await web3.eth.getBalance(accounts[9])
