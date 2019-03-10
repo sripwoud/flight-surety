@@ -1,6 +1,6 @@
 # FlightSurety
-
 FlightSurety is an Ethereum DApp to manage flight insurances.
+![Screenshot client](./front-end-screenshot.png)
 
 ## User Stories
 ### Airlines
