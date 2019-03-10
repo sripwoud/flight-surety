@@ -60,14 +60,14 @@ const Server = {
 
     flightSuretyApp.events.OracleRequest()
       .on('error', error => { console.log(error) })
-      .on('data', log => {
+      .on('data', async log => {
         const {
           event,
           returnValues: { index, flight, destination, timestamp }
         } = log
 
         console.log(`${event}: index ${index}, flight ${flight}, to ${destination}, landing ${timestamp}`)
-        this.submitResponses(flight, destination, timestamp)
+        await this.submitResponses(flight, destination, timestamp)
       })
 
     flightSuretyApp.events.OracleReport()
@@ -89,6 +89,12 @@ const Server = {
       })
       .on('error', error => { console.log(error) })
 
+    flightSuretyApp.events.FlightProcessed()
+      .on('data', log => {
+        const { event, returnValues: { flightRef, destination, timestamp, statusCode } } = log
+        console.log(`${event}: flight ${flightRef}, to ${destination}, landing ${timestamp}, status ${this.states[statusCode]}`)
+      })
+
     flightSuretyData.events.Funded()
       .on('data', log => {
         const { returnValues: { airline } } = log
@@ -106,6 +112,13 @@ const Server = {
       .on('data', log => {
         const { event, returnValues: { recipient, amount } } = log
         console.log(`${event} ${amount} to ${recipient}`)
+      })
+
+
+    flightSuretyData.events.Credited()
+      .on('data', log => {
+        const { event, returnValues: { passenger, amount } } = log
+        console.log(`${event} ${amount} to ${passenger}`)
       })
 
     // Authorize
@@ -144,21 +157,20 @@ const Server = {
   submitResponses: async function (flight, destination, timestamp) {
     this.oracles.forEach(async oracle => {
       // random answer
-      // const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
-      const statusCode = 20
+      const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
       // get indexes
       const oracleIndexes = await flightSuretyApp.methods.getMyIndexes().call({ from: oracle })
       oracleIndexes.forEach(async index => {
         try {
-          const tx = await flightSuretyApp.methods.submitOracleResponse(
+          await flightSuretyApp.methods.submitOracleResponse(
             index,
             flight,
             destination,
-            timestamp,
+            +timestamp,
             statusCode
           ).send({ from: oracle })
         } catch (error) {
-          console.log(error.message)
+          // console.log(error.message)
         }
       })
     })
