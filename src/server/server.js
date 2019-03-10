@@ -137,21 +137,12 @@ const Server = {
           gasPrice: 100000000000
         })
       } catch (error) {
-        console.log(error.message)
+        // console.log(error.message)
       }
     })
 
     // get and store existing flights
-    try {
-      const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
-      for (let i = 0; i < indexFlightKeys + 1; i++) {
-        const key = await flightSuretyData.methods.flightKeys(i).call()
-        const flight = await flightSuretyData.methods.flights(key).call()
-        Server.flights.push(flight)
-      }
-    } catch (error) {
-      // console.log('No flights to add')
-    }
+    this.updateFlights()
   },
 
   submitResponses: async function (flight, destination, timestamp) {
@@ -174,6 +165,21 @@ const Server = {
         }
       })
     })
+  },
+
+  updateFlights: async function () {
+    // Clean array
+    this.flights = []
+    try {
+      const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
+      for (let i = 0; i < indexFlightKeys + 1; i++) {
+        const key = await flightSuretyData.methods.flightKeys(i).call()
+        const flight = await flightSuretyData.methods.flights(key).call()
+        this.flights.push(flight)
+      }
+    } catch (error) {
+      // console.log('No flights to add')
+    }
   }
 }
 
