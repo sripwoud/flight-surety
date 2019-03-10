@@ -85,23 +85,6 @@ export default class Contract {
       await this.flightSuretyApp.methods
         .registerFlight(takeOff, landing, flight, priceWei, from, to)
         .send({ from: this.account })
-
-      // POST flight to server
-      fetch('http://localhost:3000/flights', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          flight: flight,
-          from: from,
-          to: to,
-          takeOff: takeOff,
-          landing: landing,
-          price: price
-        })
-      })
-
       return {
         address: this.account,
         error: ''
