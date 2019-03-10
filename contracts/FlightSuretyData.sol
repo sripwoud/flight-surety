@@ -259,6 +259,7 @@ contract FlightSuretyData {
                 "Less than 4 airlines registered: only first airline registered can register new ones");
             registeredAirlinesCount++;
             airlines[airlineAddress].registered = true;
+            emit AirlineRegistered(originAddress, airlineAddress);
         } else {
             // multi party consensus
             bool isDuplicate = false;
