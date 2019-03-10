@@ -203,10 +203,6 @@ app.set('json spaces', 2)
 app.get('/flights', (req, res) => {
   res.json(Server.flights)
 })
-app.get('/balance/:address', async (req, res) => {
-  const balance = await flightSuretyData.methods.withdrawals(req.params.address).call()
-  res.send(web3.utils.fromWei(balance.toString(), 'ether') + ' ETH')
-})
 app.get('/flight/:ref.:dest.:landing', async (req, res) => {
   const key = await flightSuretyData.methods.getFlightKey(
     req.params.ref,
@@ -224,9 +220,6 @@ app.get('/response/:ref.:dest.:landing', async (req, res) => {
   ).call()
   const response = await flightSuretyApp.methods.oracleResponses(key).call()
   res.send(response)
-})
-app.post('/flights', (req, res) => {
-  Server.flights.push(req.body)
 })
 
 export default app
