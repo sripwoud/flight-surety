@@ -165,9 +165,9 @@ app.get('/api', (req, res) => {
 app.get('/flights', (req, res) => {
   res.send(Server.flights)
 })
-app.get('/balances/:address', async (req, res) => {
+app.get('/balance/:address', async (req, res) => {
   const balance = await flightSuretyData.methods.withdrawals(req.params.address).call()
-  res.send(balance)
+  res.send(web3.utils.fromWei(balance.toString(), 'ether') + 'ETH')
 })
 app.get('/flight/:ref.:dest.:landing', async (req, res) => {
   const key = await flightSuretyData.methods.getFlightKey(
