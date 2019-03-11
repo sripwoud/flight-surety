@@ -58,11 +58,6 @@ contract FlightSuretyData {
 
     mapping(address => uint) public withdrawals;
 
-
-    // Multi-party consensus
-    // mapping instead of an array I want to count not only multicalls but multicalls per to-be-added airline
-    mapping(address => address[]) internal votes;
-
     ////////////////////////// EVENTS
     event Paid(address recipient, uint amount);
     event Funded(address airline);
@@ -111,20 +106,6 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier airlineRegistered(address airlineAddress) {
-        require(
-            airlines[airlineAddress].registered == true,
-            "Airline must be registered before being able to perform this action");
-        _;
-    }
-
-    modifier airlineFunded(address airlineAddress) {
-        require(
-            airlines[airlineAddress].funded == true,
-            "Airline must provide funding before being able to perform this action");
-        _;
-    }
-
     modifier flightRegistered(bytes32 flightKey) {
         require(flights[flightKey].isRegistered, "This flight does not exist");
         _;
@@ -165,10 +146,6 @@ contract FlightSuretyData {
         authorizedCallers[callerAddress] = true;
     }
 
-    function threshold() internal view returns (uint _threshold) {
-        _threshold = registeredAirlinesCount.div(2);
-    }
-
     function hasFunded(address airlineAddress)
     external
     view
@@ -177,12 +154,12 @@ contract FlightSuretyData {
         _hasFunded = airlines[airlineAddress].funded;
     }
 
-    function votesLeft (address airlineToBeAdded)
+    function isRegistered(address airlineAddress)
     external
     view
-    returns (uint numVotes)
+    returns (bool _registered)
     {
-        numVotes = votes[airlineToBeAdded].length;
+        _registered = airlines[airlineAddress].registered;
     }
 
     function getFlightKey
@@ -250,36 +227,10 @@ contract FlightSuretyData {
     external
     requireIsOperational
     callerAuthorized
-    airlineRegistered(originAddress) // redundant?
-    airlineFunded(originAddress)
     {
-        // only first Airline can register a new airline when less than 4 airlines are registered
-        if (registeredAirlinesCount < 4) {
-            require(
-                firstAirline == originAddress,
-                "Less than 4 airlines registered: only first airline registered can register new ones");
-            registeredAirlinesCount++;
-            airlines[airlineAddress].registered = true;
-            emit AirlineRegistered(originAddress, airlineAddress);
-        } else {
-            // multi party consensus
-            bool isDuplicate = false;
-            for (uint i=0; i < votes[airlineAddress].length; i++) {
-                if (votes[airlineAddress][i] == originAddress) {
-                    isDuplicate = true;
-                    break;
-                }
-            }
-            require(!isDuplicate, "Caller cannot call this function twice");
-            votes[airlineAddress].push(originAddress);
-
-            if (votes[airlineAddress].length >= threshold()) {
-                airlines[airlineAddress].registered = true;
-                registeredAirlinesCount++;
-                votes[airlineAddress] = new address[](0);
-                emit AirlineRegistered(originAddress, airlineAddress);
-            }
-        }
+        registeredAirlinesCount++;
+        airlines[airlineAddress].registered = true;
+        emit AirlineRegistered(originAddress, airlineAddress);
     }
 
     function registerFlight
@@ -295,7 +246,6 @@ contract FlightSuretyData {
     external
     requireIsOperational
     callerAuthorized
-    airlineFunded(originAddress)
     {
         require(_takeOff > now, "A flight cannot take off in the past");
         require(_landing > _takeOff, "A flight cannot land before taking off");
@@ -327,7 +277,6 @@ contract FlightSuretyData {
     requireIsOperational
     callerAuthorized
     flightRegistered(flightKey)
-    valWithinRange(amount, 0, 1.5 ether)
     payable
     {
         Flight storage flight = flights[flightKey];
@@ -380,7 +329,6 @@ contract FlightSuretyData {
     function fund(address originAddress)
     public
     requireIsOperational
-    airlineRegistered(originAddress)
     callerAuthorized
     payable
     {
