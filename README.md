@@ -26,7 +26,8 @@ insurees.
 Oracles inform the smart contract whether the status of a flight.
 Flight status is requested by submitting a corresponding request to the oracles.  
 As soon as 3 oracles provides concurring opinion, the flight status is updated
-accordingly.
+accordingly.  
+**Oracles are simulated**: they generate a random status code on the server side.
 
 ## Contract architecture
 Data (flights, passengers, insurance amounts, airlines...) has been separated from application logic,
@@ -46,6 +47,9 @@ $ npm install
 $ truffle develop
 truffle(develop)> test
 ```
+**Don't do** `ganache-cli` and then `truffle test`**!  
+The tests will fail because of a different nounce error (I couldn't find out how to fix this).  
+Ran from the** `truffle(develop)>` **console, they will pass just fine.**
 4.  Look for your mnemonic in your Metamask settings, write it in a `.secret` file, save it in the root folder.
 5.  Deploy locally  
 Update the account argument depending on the number of addresses to load at start.
@@ -66,6 +70,15 @@ In a last terminal:
 ```
 $ npm run server
 ```
+8.  Use the app:
+  - Go to http://localhost:8000/
+  - First airline registered is the account 2 of your metamask accounts.
+  - Provide funding of min 10 ETH from this address.
+  - Register flights or (up to 3) new airlines from this address.
+  - Switch to a 'passenger' address (e.g account 3) and book a flight.
+  - 1st Airline/account 2 is now able to withdraw its credited ticket price.
+  - Submit request to oracles (from which account doesn't matter)
+  - If flight is delayed, passenger/account 3 can now withdraw his credited insurance amount.
 
 ## API
 The server runs by default on port 3000.
