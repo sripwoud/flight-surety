@@ -29,11 +29,14 @@ contract FlightSuretyData {
 
     function book(bytes32 flightKey, uint amount, address originAddress) external payable;
     function pay(address originAddress) external;
-    function votesLeft(address airlineToBeAdded) external view returns(uint);
-
-    function getFlightPrice(bytes32 flightKey) external view returns (uint);
-
     function processFlightStatus(bytes32 flightKey, uint8 status)  external;
+    function getFlightPrice(bytes32 flightKey) external view returns (uint);
+    function hasFunded(address airlineAddress) external view returns (bool);
+    function isRegistered(address airlineAddress) external view returns (bool);
+    function registeredAirlinesCount() external view returns (uint);
+    function firstAirline() external view returns (address);
+
+
 }
 
 
@@ -67,9 +70,9 @@ contract FlightSuretyApp {
     // Contract control flag
     bool public operational;
 
-    /* mapping of flight moved to data contract:
-    we don't want to loose previously registered flights in the case when deploying a new app contract
-    */
+    // Multi-party consensus - part of app logic
+    // mapping instead of an array I want to count not only multicalls but multicalls per to-be-added airline
+    mapping(address => address[]) internal votes;
 
     /////////////////////////////// EVENTS
 
@@ -119,6 +122,22 @@ contract FlightSuretyApp {
         msg.sender.transfer(amountToReturn);
         _;
     }
+
+    modifier airlineRegistered() {
+        require(
+            flightSuretyData.isRegistered(msg.sender),
+            "Airline must be registered before being able to perform this action"
+        );
+        _;
+    }
+
+    modifier airlineFunded() {
+        require(
+            flightSuretyData.hasFunded(msg.sender),
+            "Airline must provide funding before being able to perform this action"
+        );
+        _;
+    }
     //////////////////////////////// CONSTRUCTOR
 
     constructor(address dataContractAddress) public {
@@ -134,9 +153,14 @@ contract FlightSuretyApp {
         operational = mode;
     }
 
-    function votesLeft(address airlineToBeAdded) external view returns (uint numVotes)
+    function votesLeft(address airlineToBeAdded)
+    public
+    view
+    returns (uint remainingVotes)
     {
-        numVotes = flightSuretyData.votesLeft(airlineToBeAdded);
+        uint registeredVotes = votes[airlineToBeAdded].length;
+        uint threshold = flightSuretyData.registeredAirlinesCount().div(2);
+        remainingVotes = threshold.sub(registeredVotes);
     }
 
     ///////////////////////////// SMART CONTRACT FUNCTIONS
@@ -144,12 +168,37 @@ contract FlightSuretyApp {
     function registerAirline(address airlineAddress)
     external
     requireIsOperational
+    airlineRegistered
+    airlineFunded
     {
-        flightSuretyData.registerAirline(airlineAddress, msg.sender);
+        // only first Airline can register a new airline when less than 4 airlines are registered
+        if (flightSuretyData.registeredAirlinesCount() < 4) {
+            require(
+                flightSuretyData.firstAirline() == msg.sender,
+                "Less than 4 airlines registered: only first airline registered can register new ones");
+            flightSuretyData.registerAirline(airlineAddress, msg.sender);
+        } else {
+            // multi party consensus
+            bool isDuplicate = false;
+            for (uint i=0; i < votes[airlineAddress].length; i++) {
+                if (votes[airlineAddress][i] == msg.sender) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            require(!isDuplicate, "Caller cannot call this function twice");
+            votes[airlineAddress].push(msg.sender);
+
+            if (votesLeft(airlineAddress) == 0) {
+                votes[airlineAddress] = new address[](0);
+                flightSuretyData.registerAirline(airlineAddress, msg.sender);
+            }
+        }
     }
 
     function fund()
     external
+    airlineRegistered
     enoughFund
     requireIsOperational
     payable
@@ -168,6 +217,7 @@ contract FlightSuretyApp {
     )
     external
     requireIsOperational
+    airlineFunded
     {
         flightSuretyData.registerFlight(
             takeOff,
