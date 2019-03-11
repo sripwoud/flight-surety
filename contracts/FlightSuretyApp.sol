@@ -239,7 +239,7 @@ contract FlightSuretyApp {
         uint amount
     )
     external
-    valWithinRange(amount, 0, 1 ether)
+    valWithinRange(amount, 0, 1.05 ether) // +0.05 to cover gas costs
     paidEnough(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
     checkValue(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
     requireIsOperational
