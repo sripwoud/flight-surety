@@ -3,9 +3,9 @@ const FlightSuretyData = artifacts.require('FlightSuretyData')
 const fs = require('fs')
 const path = require('path')
 
-module.exports = function (deployer) {
-  var flightSuretyData, flightSuretyApp;
-  let firstAirline = '0xf17f52151EbEF6C7334FAD080c5704D77216b732'
+module.exports = function (deployer, network, accounts) {
+  var flightSuretyData, flightSuretyApp
+  let firstAirline = accounts[1]
   deployer.deploy(FlightSuretyData, firstAirline)
     .then(instance => {
       // get the deployed instance of flightSuretyData

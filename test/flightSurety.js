@@ -1,8 +1,5 @@
-
 const Test = require('../config/testConfig.js')
-const BigNumber = require('bignumber.js')
 const truffleAssert = require('truffle-assertions')
-const keccak256 = require('keccak256')
 
 contract('Flight Surety Tests', async (accounts) => {
   var config
