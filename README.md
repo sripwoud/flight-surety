@@ -1,6 +1,6 @@
 # FlightSurety
 FlightSurety is an Ethereum DApp to manage flight insurances.
-![Screenshot client](./front-end-screenshot.png)
+![Screenshot client](./screenshots/front-end.png)
 
 ## User Stories
 ### Airlines
@@ -49,7 +49,8 @@ truffle(develop)> test
 ```
 **Don't do** `ganache-cli` and then `truffle test`**!  
 The tests will fail because of a different nounce error (I couldn't find out how to fix this).  
-Ran from the** `truffle(develop)>` **console, they will pass just fine.**
+Ran from the** `truffle(develop)>` **console and they will pass just fine.**
+![Screenshot tests](./screenshots/test.png)
 4.  Look for your mnemonic in your Metamask settings, write it in a `.secret` file, save it in the root folder.
 5.  Deploy locally  
 Update the account argument depending on the number of addresses to load at start.
@@ -78,12 +79,17 @@ $ npm run server
   - Switch to a 'passenger' address (e.g account 3) and book a flight.
   - 1st Airline/account 2 is now able to withdraw its credited ticket price.
   - Submit request to oracles (from which account doesn't matter)
-  - If flight is delayed, passenger/account 3 can now withdraw his credited insurance amount.
+  - If flight is delayed, passenger/account 3 can now withdraw his credited insurance amount.  
+
+**NOTES:  
+The browser needs to be refreshed in order for the drop-down selection lists (flight booking and oracle requests) to be updated.  
+Refresh is also needed after switching accounts in Metamask.**
 
 ## API
-The server runs by default on port 3000.
+The server runs by default on port 3000.  
 - **/flights**  
-Get all registered flights
+Get all registered flights.  
+Note: the front-end client get the registered flights from this end point.
 - **/flight/ref.destination.landing_timestamp**  
 Get one flight
 - **/response/ref.destination.landing_timestamp**  
