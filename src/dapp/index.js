@@ -23,12 +23,15 @@ import './flightsurety.css'
         .then(flights => {
           flights.forEach(flight => {
             // append only flights that haven't been processed yet
-            if (flight.statusCode == 0) {
-              // append flight to passenger selection list
-              let { price, flightRef, from, to, takeOff, landing } = flight
+            if (flight.flight.statusCode == 0) {
+              let {
+                index,
+                flight: { price, flightRef, from, to, takeOff, landing }
+              } = flight
               price = price / 1000000000000000000
+              // append flight to passenger selection list
               let datalist = DOM.elid('flights')
-              let option = DOM.option({ value: `${price} ETH - ${flightRef} - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
+              let option = DOM.option({ value: `${index} - ${price} ETH - ${flightRef} - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
               datalist.appendChild(option)
               // append to oracle submission list
               datalist = DOM.elid('oracle-requests')
@@ -98,26 +101,38 @@ import './flightsurety.css'
 
     // Book flight
     DOM.elid('buy').addEventListener('click', async () => {
-      // destructure and get args
+      // destructure and get index
       let input = DOM.elid('buyFlight').value
       input = input.split('-')
       input = input.map(el => { return el.trim() })
-      const price = input[0].slice(0, -4)
-      const flight = input[1]
-      const to = input[4]
-      const landing = new Date(input[5]).getTime()
+      const index = input[0]
       const insurance = DOM.elid('buyAmount').value
-      // execute transaction
-      const { passenger, error } = await contract.book(flight, to, landing, price, insurance)
-      display(
-        `Passenger ${sliceAddress(passenger)}`,
-        'Book flight',
-        [{
-          label: `${flight} to ${to} lands at ${parseDate(landing)}`,
-          error: error,
-          value: `insurance: ${insurance} ETH`
-        }]
-      )
+      // Fetch args from server
+      fetch('http://localhost:3000/flights')
+        .then(res => { return res.json() })
+        .then(flights => {
+          return flights.filter(el => { return el.index == index })
+        })
+        .then(async flight => {
+          // These are all STRINGS
+          const { flight: { flightRef, to, landing, price } } = flight[0]
+          // execute transaction
+          const { passenger, error } = await contract.book(
+            flightRef,
+            to,
+            landing,
+            price / 1000000000000000000,
+            insurance)
+          display(
+            `Passenger ${sliceAddress(passenger)}`,
+            'Book flight',
+            [{
+              label: `${flightRef} to ${to} lands at ${landing}`,
+              error: error,
+              value: `insurance: ${insurance} ETH`
+            }]
+          )
+        })
     })
 
     // Withdraw funds

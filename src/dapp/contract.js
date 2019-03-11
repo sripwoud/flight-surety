@@ -115,7 +115,7 @@ export default class Contract {
     const amount = this.web3.utils.toWei(insurance.toString(), 'ether')
     try {
       await this.flightSuretyApp.methods
-        .book(flight, to, landing, amount)
+        .book(flight, to, +landing, amount)
         .send({
           from: this.account,
           value: this.web3.utils.toWei(total.toString(), 'ether')
