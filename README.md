@@ -56,7 +56,7 @@ truffle(develop)> test
 The tests would fail because of a different nounce error (I couldn't find out how to fix this).  
 Run from the** `truffle(develop)>` **console and they will pass just fine.**
 ![Screenshot tests](./screenshots/test.png)
-4.  Look for your mnemonic in your Metamask settings, write it in a `.secret` file, save it in the root folder.
+4.  Look for your mnemonic in your Metamask settings, write it in a `.secret` file, save it in the root folder.  
 5.  Deploy locally  
 Update the account argument depending on the number of addresses to load at start.
 ```
