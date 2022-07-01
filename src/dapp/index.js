@@ -24,47 +24,44 @@ import './flightsurety.css'
     })
 
     // (airline) Register airline
-    DOM.elid('register-airline').addEventListener('click', () => {
+    DOM.elid('register-airline').addEventListener('click', async () => {
       const newAirline = DOM.elid('regAirlineAddress').value
-      contract.registerAirline(newAirline, (error, result) => {
-        display(
-          `Airline ${sliceAddress(result.airline)}`,
-          'Register Airline', [{
-            label: sliceAddress(result.newAirline),
-            error: error,
-            value: `needs ${result.additionalVotesRequired} further votes`
-          }]
-        )
-      })
+      const { address, votes, error } = await contract.registerAirline(newAirline)
+      display(
+        `Airline ${sliceAddress(address)}`,
+        'Register Airline', [{
+          label: sliceAddress(newAirline),
+          error: error,
+          value: `${votes} more vote(s) required`
+        }]
+      )
     })
 
     // (airline) Register flight
-    DOM.elid('register-flight').addEventListener('click', () => {
+    DOM.elid('register-flight').addEventListener('click', async () => {
       const takeOff = new Date(DOM.elid('regFlightTakeOff').value).getTime()
       const landing = new Date(DOM.elid('regFlightLanding').value).getTime()
       const flight = DOM.elid('regFlightRef').value
       const price = DOM.elid('regFlightPrice').value
       const from = DOM.elid('regFlightFrom').value
       const to = DOM.elid('regFlightTo').value
-      contract.registerFlight(
+      const { address, error } = await contract.registerFlight(
         takeOff,
         landing,
         flight,
         price,
         from,
-        to,
-        (error, result) => {
-          const textNoPrice = `${result.from} - ${result.to}: ${new Date(result.takeOff).toString().slice(0, -42)} - ${new Date(result.landing).toString().slice(0, -42)}`
-          display(
-            `Airline ${sliceAddress(result.address)}`,
-            'Register Flight', [{
-              label: `${result.flight}`,
-              error: error,
-              value: `${textNoPrice}` }])
-          let datalist = DOM.elid('flights')
-          let option = DOM.option({ value: `${result.price} - ${textNoPrice}` })
-          datalist.appendChild(option)
-        })
+        to)
+      const textNoPrice = `${from} - ${to}: ${new Date(takeOff).toString().slice(0, -42)} - ${new Date(landing).toString().slice(0, -42)}`
+      display(
+        `Airline ${sliceAddress(address)}`,
+        'Register Flight', [{
+          label: `${flight}`,
+          error: error,
+          value: `${textNoPrice}` }])
+      let datalist = DOM.elid('flights')
+      let option = DOM.option({ value: `${price} ETH - ${textNoPrice}` })
+      datalist.appendChild(option)
     })
 
     // Provide funding
