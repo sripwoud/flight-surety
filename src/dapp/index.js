@@ -26,7 +26,7 @@ import './flightsurety.css'
             let { price, flightRef, from, to, takeOff, landing } = flight
             price = price / 1000000000000000000
             let datalist = DOM.elid('flights')
-            let option = DOM.option({ value: `${price} ETH - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
+            let option = DOM.option({ value: `${price} ETH - ${flightRef} - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
             datalist.appendChild(option)
             // append to oracle submission list
             datalist = DOM.elid('oracle-requests')
@@ -54,6 +54,15 @@ import './flightsurety.css'
     DOM.elid('register-airline').addEventListener('click', async () => {
       const newAirline = DOM.elid('regAirlineAddress').value
       await contract.registerAirline(newAirline)
+      const { address, votes, error } = await contract.registerAirline(newAirline)
+      display(
+        `Airline ${sliceAddress(address)}`,
+        'Register Airline', [{
+          label: sliceAddress(newAirline),
+          error: error,
+          value: `${votes} more vote(s) required`
+        }]
+      )
     })
 
     // (airline) Register flight
@@ -71,13 +80,6 @@ import './flightsurety.css'
         price,
         from,
         to)
-      // const textNoPrice = `${from} - ${to}: ${parseDate(takeOff)} - ${parseDate(landing)}`
-    //   display(
-    //     `Airline ${sliceAddress(address)}`,
-    //     'Register Flight', [{
-    //       label: `${flightRef}`,
-    //       error: error,
-    //       value: `${textNoPrice}` }])
     })
 
     // Provide funding
