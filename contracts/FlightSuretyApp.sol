@@ -61,18 +61,19 @@ contract FlightSuretyApp {
     bool public operational;
 
     // Flights
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 takeOff;
-        uint256 landing;
-        uint256 updatedTimestamp;
-        address airline;
-        string flight;
-        uint price;
-        string from;
-        string to;
-    }
+    // struct Flight {
+    //     bool isRegistered;
+    //     uint8 statusCode;
+    //     uint256 takeOff;
+    //     uint256 landing;
+    //     uint256 updatedTimestamp;
+    //     address airline;
+    //     string flight;
+    //     uint price;
+    //     string from;
+    //     string to;
+    //     mapping(address => bool) passengers;
+    // }
     /* mapping of flight moved to data contract:
     we don't want to loose previously registered flights in the case when deploying a new app contract
     */
@@ -161,6 +162,20 @@ contract FlightSuretyApp {
             msg.sender
         );
         emit FlightRegistered(_flight);
+    }
+
+    function book
+    (
+        string _flight,
+        string _to,
+        uint _landing
+    )
+    external
+    view
+    requireIsOperational
+    {
+        // bytes32 = getFlightKey(_flight, _to, _landing);
+
     }
 
    //Called after oracle has updated flight status
