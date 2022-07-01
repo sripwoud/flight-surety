@@ -22,16 +22,19 @@ import './flightsurety.css'
         })
         .then(flights => {
           flights.forEach(flight => {
-            // append flight to passenger selection list
-            let { price, flightRef, from, to, takeOff, landing } = flight
-            price = price / 1000000000000000000
-            let datalist = DOM.elid('flights')
-            let option = DOM.option({ value: `${price} ETH - ${flightRef} - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
-            datalist.appendChild(option)
-            // append to oracle submission list
-            datalist = DOM.elid('oracle-requests')
-            option = DOM.option({ value: `${flightRef} - ${to} - ${parseDate(+landing)}` })
-            datalist.appendChild(option)
+            // append only flights that haven't been processed yet
+            if (flight.statusCode === 0) {
+              // append flight to passenger selection list
+              let { price, flightRef, from, to, takeOff, landing } = flight
+              price = price / 1000000000000000000
+              let datalist = DOM.elid('flights')
+              let option = DOM.option({ value: `${price} ETH - ${flightRef} - ${from} - ${parseDate(+takeOff)} - ${to} - ${parseDate(+landing)}` })
+              datalist.appendChild(option)
+              // append to oracle submission list
+              datalist = DOM.elid('oracle-requests')
+              option = DOM.option({ value: `${flightRef} - ${to} - ${parseDate(+landing)}` })
+              datalist.appendChild(option)
+            }
           })
         })
     }
