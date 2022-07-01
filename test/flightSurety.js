@@ -194,7 +194,7 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(
       +insuranceCredit,
       Math.floor(+insurancePayment * 3 / 2),
-      'Insurance amount not credited correctly')
+      'Insurance amount not recorded correctly')
   })
 
   it('(withdraw function) Airline can withdraw their credited amount (from bought flight tickets)', async () => {
