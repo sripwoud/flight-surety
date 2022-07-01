@@ -28,6 +28,30 @@ const Server = {
 
   init: async function (numberOracles) {
     // EVENTS LISTENERS
+    flightSuretyApp.events.OracleRegistered()
+      .on('data', log => {
+        const { event, returnValues: { indexes } } = log
+        console.log(`${event}: indexes ${indexes[0]} ${indexes[1]} ${indexes[2]}`)
+      })
+      .on('error', error => { console.log(error) })
+
+    flightSuretyData.events.AirlineRegistered()
+      .on('data', log => {
+        const { returnValues: { origin, newAirline } } = log
+        console.log(`${origin} registered ${newAirline}`)
+      })
+      .on('error', error => { console.log(error) })
+
+    flightSuretyApp.events.FlightRegistered()
+      .on('data', log => {
+        const {
+          event,
+          returnValues: { flightRef, to, landing }
+        } = log
+        console.log(`${event}: ${flightRef} to ${to} landing ${landing}`)
+      })
+      .on('error', error => { console.log(error) })
+
     flightSuretyApp.events.OracleRequest()
       .on('error', error => { console.log(error) })
       .on('data', log => {
@@ -38,13 +62,6 @@ const Server = {
 
         console.log(`${event}: index ${index}, flight ${flight}, to ${destination}, landing ${timestamp}`)
         this.submitResponses(flight, destination, timestamp)
-      })
-
-    flightSuretyApp.events.OracleRegistered()
-      .on('error', error => { console.log(error) })
-      .on('data', log => {
-        const { event, returnValues: indexes } = log
-        console.log(`${event}: indexes ${indexes[0]}`)
       })
 
     flightSuretyApp.events.OracleReport()
@@ -63,6 +80,25 @@ const Server = {
           returnValues: { flight, destination, timestamp, status }
         } = log
         console.log(`${event}: flight ${flight}, to ${destination}, landing ${timestamp}, status ${this.states[status]}`)
+      })
+
+    flightSuretyData.events.Funded()
+      .on('data', log => {
+        const { returnValues: { airline } } = log
+        console.log(`${airline} provided funding`)
+      })
+      .on('error', error => console.log(error))
+
+    flightSuretyApp.events.WithdrawRequest()
+      .on('data', log => {
+        const { event, returnValues: { recipient } } = log
+        console.log(`${event} from ${recipient}`)
+      })
+
+    flightSuretyData.events.Paid()
+      .on('data', log => {
+        const { event, returnValues: { recipient, amount } } = log
+        console.log(`${event} ${amount} to ${recipient}`)
       })
 
     // Authorize
@@ -128,6 +164,19 @@ app.get('/api', (req, res) => {
 })
 app.get('/flights', (req, res) => {
   res.send(Server.flights)
+})
+app.get('/balances/:address', async (req, res) => {
+  const balance = await flightSuretyData.methods.withdrawals(req.params.address).call()
+  res.send(balance)
+})
+app.get('/flight/:ref.:dest.:landing', async (req, res) => {
+  const key = await flightSuretyData.methods.getFlightKey(
+    req.params.ref,
+    req.params.dest,
+    req.params.landing
+  ).call()
+  const flight = await flightSuretyData.methods.flights(key).call()
+  res.send(flight)
 })
 app.post('/flights', (req, res) => {
   Server.flights.push(req.body)

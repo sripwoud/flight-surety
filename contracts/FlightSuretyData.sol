@@ -64,6 +64,7 @@ contract FlightSuretyData {
     ////////////////////////// EVENTS
     event Paid(address recipient, uint amount);
     event Funded(address airline);
+    event AirlineRegistered(address origin, address newAirline);
     ///////////////////////// CONSTRUCTOR
 
     constructor(address _firstAirline) public {
@@ -272,6 +273,7 @@ contract FlightSuretyData {
                 airlines[airlineAddress].registered = true;
                 registeredAirlinesCount++;
                 votes[airlineAddress] = new address[](0);
+                emit AirlineRegistered(originAddress, airlineAddress);
             }
         }
     }
