@@ -147,8 +147,8 @@ const Server = {
 
   submitResponses: async function (flight, destination, timestamp) {
     this.oracles.forEach(async oracle => {
-      // random answer
-      const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
+      // random number out of [10, 20, 30, 40, 50]
+      const statusCode = (Math.floor(Math.random() * 5) + 1) * 10
       // get indexes
       const oracleIndexes = await flightSuretyApp.methods.getMyIndexes().call({ from: oracle })
       oracleIndexes.forEach(async index => {
