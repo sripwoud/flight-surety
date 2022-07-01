@@ -22,6 +22,8 @@ contract FlightSuretyData {
         uint landing,
         string light,
         uint price,
+        string from,
+        string to,
         address originAddress
     )
     external;
@@ -68,6 +70,8 @@ contract FlightSuretyApp {
         address airline;
         string flight;
         uint price;
+        string from;
+        string to;
     }
     /* mapping of flight moved to data contract:
     we don't want to loose previously registered flights in the case when deploying a new app contract
@@ -140,7 +144,9 @@ contract FlightSuretyApp {
         uint _takeOff,
         uint _landing,
         string _flight,
-        uint _price
+        uint _price,
+        string _from,
+        string _to
     )
     external
     requireIsOperational
@@ -150,6 +156,8 @@ contract FlightSuretyApp {
             _landing,
             _flight,
             _price,
+            _from,
+            _to,
             msg.sender
         );
         emit FlightRegistered(_flight);

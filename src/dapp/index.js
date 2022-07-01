@@ -29,19 +29,23 @@ import './flightsurety.css'
       const landing = new Date(DOM.elid('regFlightLanding').value).getTime()
       const flight = DOM.elid('regFlightRef').value
       const price = DOM.elid('regFlightPrice').value
+      const from = DOM.elid('regFlightFrom').value
+      const to = DOM.elid('regFlightTo').value
       contract.registerFlight(
         takeOff,
         landing,
         flight,
         price,
+        from,
+        to,
         (error, result) => {
-          const times = `${new Date(result.takeOff).toString().slice(0, -42)} - ${new Date(result.landing).toString().slice(0, -42)}`
+          const textNoPrice = `${result.from} - ${result.to}: ${new Date(result.takeOff).toString().slice(0, -42)} - ${new Date(result.landing).toString().slice(0, -42)}`
           display(`Airline ${result.address}`, 'Register Flight', [{
-            label: 'Flight',
+            label: `${result.flight}`,
             error: error,
-            value: `${result.flight} ${times}` }])
+            value: `${textNoPrice}` }])
           let datalist = DOM.elid('flights')
-          let option = DOM.option({ value: `${result.price} - ${times}` })
+          let option = DOM.option({ value: `${result.price} - ${textNoPrice}` })
           datalist.appendChild(option)
         })
     })
