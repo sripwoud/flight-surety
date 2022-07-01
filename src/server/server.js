@@ -31,30 +31,39 @@ const Server = {
     flightSuretyApp.events.OracleRequest()
       .on('error', error => { console.log(error) })
       .on('data', log => {
-        console.log(`${log.event}`)
+        const {
+          event,
+          returnValues: { index, flight, destination, timestamp }
+        } = log
+
+        console.log(`${event}: index ${index}, flight ${flight}, to ${destination}, landing ${timestamp}`)
+        this.submitResponses(flight, destination, timestamp)
       })
+
     flightSuretyApp.events.OracleRegistered()
       .on('error', error => { console.log(error) })
       .on('data', log => {
         const { event, returnValues: indexes } = log
         console.log(`${event}: indexes ${indexes[0]}`)
       })
-    // flightSuretyApp.events.FlightRegistered()
-    //   .on('error', error => { console.log(error) })
-    //   .on('data', log => {
-    //     const { flightRef, to, landing } = log.returnValues
-    //     this.flights.push({
-    //       flight: flightRef,
-    //       to: to,
-    //       landing: landing
-    //     })
-    //   })
-    // flightSuretyData.events.Funded()
-    //   .on('error', error => { console.log(error) })
-    //   .on('data', log => {
-    //     const { airline } = log.returnValues
-    //     console.log(`Airline ${airline} provided funding`)
-    //   })
+
+    flightSuretyApp.events.OracleReport()
+      .on('data', log => {
+        const {
+          event,
+          returnValues: { flight, destination, timestamp, status }
+        } = log
+        console.log(`${event}: flight ${flight}, to ${destination}, landing ${timestamp}, status ${this.states[status]}`)
+      })
+
+    flightSuretyApp.events.FlightStatusInfo()
+      .on('data', log => {
+        const {
+          event,
+          returnValues: { flight, destination, timestamp, status }
+        } = log
+        console.log(`${event}: flight ${flight}, to ${destination}, landing ${timestamp}, status ${this.states[status]}`)
+      })
 
     // Authorize
     await flightSuretyData.methods.authorizeCaller(flightSuretyApp._address)
@@ -74,6 +83,29 @@ const Server = {
       } catch (error) {
         console.log(error.message)
       }
+    })
+  },
+
+  submitResponses: async function (flight, destination, timestamp) {
+    this.oracles.forEach(async oracle => {
+      // random answer
+      const statusCode = (Math.floor(Math.random() * 10) % 6) * 10
+
+      // get indexes
+      const oracleIndexes = await flightSuretyApp.methods.getMyIndexes().call({ from: oracle })
+      oracleIndexes.forEach(async index => {
+        try {
+          await flightSuretyApp.methods.submitOracleResponse(
+            index,
+            flight,
+            destination,
+            timestamp,
+            statusCode
+          ).send({ from: oracle })
+        } catch (error) {
+          // console.log(error.message)
+        }
+      })
     })
   }
 }
