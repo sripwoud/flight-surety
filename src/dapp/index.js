@@ -35,12 +35,14 @@ import './flightsurety.css'
         flight,
         price,
         (error, result) => {
+          const times = `${new Date(result.takeOff).toString().slice(0, -42)} - ${new Date(result.landing).toString().slice(0, -42)}`
           display(`Airline ${result.address}`, 'Register Flight', [{
             label: 'Flight',
             error: error,
-            value: `${result.flight}
-            ${new Date(result.takeOff).toString().slice(0, -42)} -
-            ${new Date(result.landing).toString().slice(0, -42)}` }])
+            value: `${result.flight} ${times}` }])
+          let datalist = DOM.elid('flights')
+          let option = DOM.option({ value: `${result.price} - ${times}` })
+          datalist.appendChild(option)
         })
     })
 
