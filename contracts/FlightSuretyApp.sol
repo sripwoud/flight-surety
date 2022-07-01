@@ -243,7 +243,7 @@ contract FlightSuretyApp {
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        bytes32 key = getOracleResponseKey(index, airline, flight, timestamp);
         oracleResponses[key] = ResponseInfo({
             requester: msg.sender,
             isOpen: true
@@ -283,10 +283,13 @@ contract FlightSuretyApp {
     // Key = hash(index, flight, timestamp)
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
+    event OracleRegistered(uint8[3] indexes);
+
     // Event fired each time an oracle submits a response
+    event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
+    // Event fired when number of identical responses reaches the threshold: response is accepted and is processed
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
 
-    event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
 
     // Event fired when flight status request is submitted
     // Oracles track this and if they have a matching index
@@ -305,6 +308,7 @@ contract FlightSuretyApp {
             isRegistered: true,
             indexes: indexes
         });
+        emit OracleRegistered(indexes);
     }
 
     function getMyIndexes() external view returns(uint8[3])
@@ -328,10 +332,13 @@ contract FlightSuretyApp {
     )
     external
     {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+        require(
+            (oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index),
+            "Index does not match oracle request"
+        );
 
 
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        bytes32 key = getOracleResponseKey(index, airline, flight, timestamp);
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
@@ -359,6 +366,22 @@ contract FlightSuretyApp {
     returns(bytes32)
     {
         return keccak256(abi.encodePacked(flightRef, destination, timestamp));
+    }
+
+    function getOracleResponseKey
+    (
+        uint index,
+        address airline,
+        string flight,
+        uint timestamp
+    )
+    internal
+    pure
+    returns(bytes32)
+    {
+        // Generate a unique key for storing the oracle request
+        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        return key;
     }
 
     // Returns array of three non-duplicating integers from 0-9
