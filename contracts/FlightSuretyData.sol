@@ -400,7 +400,7 @@ contract FlightSuretyData {
     notYetProcessed(flightKey)
     {
         // Check (modifiers)
-        Flight memory flight = flights[flightKey];
+        Flight storage flight = flights[flightKey];
         // Effect
         flight.statusCode = statusCode;
         // Interact
