@@ -43,12 +43,18 @@ const Server = {
       .on('error', error => { console.log(error) })
 
     flightSuretyApp.events.FlightRegistered()
-      .on('data', log => {
+      .on('data', async log => {
         const {
           event,
           returnValues: { flightRef, to, landing }
         } = log
         console.log(`${event}: ${flightRef} to ${to} landing ${landing}`)
+
+        // store new flight
+        const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
+        const key = await flightSuretyData.methods.flightKeys(indexFlightKeys).call()
+        const flight = await flightSuretyData.methods.flights(key).call()
+        Server.flights.push(flight)
       })
       .on('error', error => { console.log(error) })
 
@@ -120,6 +126,14 @@ const Server = {
         console.log(error.message)
       }
     })
+
+    // get and store existing flights
+    const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
+    for (let i = 0; i < indexFlightKeys + 1; i++) {
+      const key = await flightSuretyData.methods.flightKeys(i).call()
+      const flight = await flightSuretyData.methods.flights(key).call()
+      Server.flights.push(flight)
+    }
   },
 
   submitResponses: async function (flight, destination, timestamp) {
