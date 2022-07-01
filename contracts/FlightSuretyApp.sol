@@ -13,7 +13,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyData {
     function registerAirline(address airlineAddress, address originAddress) external;
     function fund(address originAddress) external payable;
-
+    function hasFunded(address airlineAddress) external returns (bool _hasFunded);
 }
 
 
@@ -48,12 +48,15 @@ contract FlightSuretyApp {
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
+        uint256 takeOff;
+        uint256 landing;
         uint256 updatedTimestamp;
         address airline;
+        string flight;
         uint price;
     }
 
-    mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => Flight) public flights;
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -86,6 +89,11 @@ contract FlightSuretyApp {
     In this case a new app contract would be deployed while the data contract stays the same */
     modifier enoughFund() {
         require(msg.value >= minFund, "Minimun funding amount is 10 ETH");
+        _;
+    }
+
+    modifier hasfunded() {
+        require(flightSuretyData.hasFunded(msg.sender), "Airline must be registered in order to regsiter flights");
         _;
     }
 
@@ -136,10 +144,34 @@ contract FlightSuretyApp {
     * @dev Register a future flight for insuring.
     *
     */
-    function registerFlight()
+    function registerFlight
+    (
+        uint _takeOff,
+        uint _landing,
+        string _flight,
+        uint _price
+    )
     external
-    pure
+    hasfunded
+    constant
+    returns (bytes32 flightKey)
     {
+        require(_takeOff > now, "A flight cannot take off in the past");
+        require(_landing > _takeOff, "A flight cannot land before taking off");
+
+        Flight memory flight = Flight(
+            true,
+            0,
+            _takeOff,
+            _landing,
+            now,
+            msg.sender,
+            _flight,
+            _price
+        );
+
+        flightKey = keccak256(abi.encodePacked(msg.sender, _flight, _landing));
+        flights[flightKey] = flight;
 
     }
 
@@ -204,8 +236,8 @@ contract FlightSuretyApp {
         address requester;                              // Account that requested status
         bool isOpen;                                    // If open, oracle responses are accepted
         mapping(uint8 => address[]) responses;          // Mapping key is the status code reported
-                                                        // This lets us group responses and identify
-                                                        // the response that majority of the oracles
+        // This lets us group responses and identify
+        // the response that majority of the oracles
     }
 
     // Track all oracle responses

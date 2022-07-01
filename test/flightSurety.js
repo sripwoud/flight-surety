@@ -137,6 +137,19 @@ contract('Flight Surety Tests', async (accounts) => {
     assert(await airline.registered, 'Error: 5th airline was not registered')
   })
 
+  it('(App contract) Airline can register a flight', async () => {
+    const key = await config.flightSuretyApp.registerFlight(
+      Date.now() + 1000,
+      Date.now() + 2000,
+      'FR0198',
+      '10',
+      { from: config.firstAirline })
+
+    const flight = await config.flightSuretyApp.flights(key)
+    console.log(flight)
+    // assert.equal(flight.isRegistered, true, 'Flight has not been registered')
+  })
+
 /*
   it('(App Contract) Test var at deployment', async () => {
     assert.equal(await config.flightSuretyApp.test.call(), config.flightSuretyData.address)
