@@ -14,10 +14,15 @@ contract('Flight Surety Tests', async (accounts) => {
   it('First account is firstAirline', async () => {
     assert.equal(config.firstAirline, accounts[1])
   })
-  /****************************************************************************************/
-  /* Operations and Settings                                                              */
-  /****************************************************************************************/
+
+  // Operations and Settings
   const minFund = web3.utils.toWei('10', 'ether')
+  const takeOff = Math.floor(Date.now() / 1000) + 1000
+  const landing = takeOff + 1000
+  const from = 'HAM'
+  const to = 'PAR'
+  const ticketPrice = 10
+  const flightRef = 'AF0187'
 
   it('(Data Contract) Has correct initial isOperational() value', async function () {
     // Get operating status
@@ -141,19 +146,40 @@ contract('Flight Surety Tests', async (accounts) => {
     assert(await airline.registered, 'Error: 5th airline was not registered')
   })
 
-  it('(App contract) Airline can register a flight', async () => {
-    const takeOff = Math.floor(Date.now() / 1000) + 1000
+  it('(airline) Can register a flight', async () => {
     const tx = await config.flightSuretyApp.registerFlight(
       takeOff,
-      takeOff + 1000,
-      '123',
-      '1000',
-      'Hamburg',
-      'Cebu',
+      landing,
+      flightRef,
+      ticketPrice,
+      from,
+      to,
       { from: config.firstAirline })
 
+    const flightKey = await config.flightSuretyData.getFlightKey(flightRef, to, landing)
+    const flight = await config.flightSuretyData.flights.call(flightKey)
+    // assert.equal(flight.isRegistered, 'Error: flight was not registered')
+    assert(flight.isRegistered, 'Error: flight was not registered')
     truffleAssert.eventEmitted(tx, 'FlightRegistered', ev => {
-      return ev.ref === '123'
+      return ev.ref === flightRef
     })
+  })
+
+  it('(passenger) Can book a flight and subscribe an insurance', async () => {
+    // console.log(config.testAddresses[3])
+    await config.flightSuretyApp.buy(
+      flightRef,
+      to,
+      landing,
+      10,
+      { from: accounts[9], value: 1010 }
+    )
+    const paxOnFlight = await config.flightSuretyData.paxOnFlight.call(
+      flightRef,
+      to,
+      landing,
+      accounts[9]
+    )
+    assert(paxOnFlight, 'Flight booking unsuccessful')
   })
 })
