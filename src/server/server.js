@@ -54,7 +54,14 @@ const Server = {
         const indexFlightKeys = await flightSuretyData.methods.indexFlightKeys().call()
         const key = await flightSuretyData.methods.flightKeys(indexFlightKeys).call()
         const flight = await flightSuretyData.methods.flights(key).call()
-        Server.flights.push(flight)
+        for (let j = 0; j < 9; j++) {
+          delete flight[j]
+        }
+        this.flights.push({
+          index: indexFlightKeys,
+          key: key,
+          flight: flight
+        })
       })
       .on('error', error => { console.log(error) })
 
@@ -175,8 +182,8 @@ const Server = {
       for (let i = 0; i < indexFlightKeys + 1; i++) {
         const key = await flightSuretyData.methods.flightKeys(i).call()
         const flight = await flightSuretyData.methods.flights(key).call()
-        for (let i = 0; i < 9; i++) {
-          delete flight[i.toString()]
+        for (let j = 0; j < 9; j++) {
+          delete flight[j]
         }
         // as unique key, an index is added and will be displayed in the front end form (instead of displaying the hash key)
         this.flights.push({
