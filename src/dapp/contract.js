@@ -148,4 +148,10 @@ export default class Contract {
       }
     }
   }
+
+  async withdraw () {
+    await this.flightSuretyApp.methods
+      .withdraw()
+      .send({ from: this.account })
+  }
 }
