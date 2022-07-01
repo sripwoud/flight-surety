@@ -84,10 +84,10 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier airlineFunded() {
+    modifier airlineFunded(address airlineAddress) {
         require(
-            airlines[msg.sender].funded == true,
-            "Airline must spend the funding fee before being able to perform this action");
+            airlines[airlineAddress].funded == true,
+            "Airline must provide funding before being able to perform this action");
         _;
     }
     /********************************************************************************************/
@@ -98,6 +98,7 @@ contract FlightSuretyData {
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */
+
     function setOperatingStatus(bool mode) external requireContractOwner
     differentModeRequest(mode)
     {
@@ -113,8 +114,8 @@ contract FlightSuretyData {
         authorizedCallers[callerAddress] = true;
     }
 
-    function threshold() internal view returns (uint threshold) {
-        threshold = registeredAirlinesCount.div(2);
+    function threshold() internal view returns (uint _threshold) {
+        _threshold = registeredAirlinesCount.div(2);
     }
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
@@ -134,6 +135,7 @@ contract FlightSuretyData {
     requireIsOperational
     callerAuthorized
     airlineRegistered(originAddress)
+    airlineFunded(originAddress)
     {
         // only first Airline can register a new airline when less than 4 airlines are registered
         if (registeredAirlinesCount < 4) {
@@ -201,12 +203,14 @@ contract FlightSuretyData {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */
-    function fund()
+    function fund(address originAddress)
     public
     requireIsOperational
-    // airlineRegistered
+    airlineRegistered(originAddress)
+    callerAuthorized
     payable
     {
+        airlines[originAddress].funded = true;
     }
 
     function getFlightKey
@@ -226,9 +230,10 @@ contract FlightSuretyData {
     * @dev Fallback function for funding smart contract.
     *
     */
-    function() external payable
+    function() external callerAuthorized payable
     {
-        fund();
+        require(msg.data.length == 0);
+        fund(msg.sender);
     }
 
 

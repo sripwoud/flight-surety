@@ -12,6 +12,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 // FlightSuretyData Interface contract
 contract FlightSuretyData {
     function registerAirline(address airlineAddress, address originAddress) external;
+    function fund(address originAddress) external payable;
 
 }
 
@@ -28,7 +29,9 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-    address public test;
+    // minimum funding amount
+    uint minFund = 10 ether; // 10 ETH
+
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
@@ -37,24 +40,24 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
-    address private contractOwner;          // Account used to deploy contract
+    // Account used to deploy contract
+    address private contractOwner;
+    // Contract control flag
+    bool public operational;
 
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
         uint256 updatedTimestamp;
         address airline;
+        uint price;
     }
-    mapping(bytes32 => Flight) private flights;
 
+    mapping(bytes32 => Flight) private flights;
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
-
-    // Modifiers help avoid duplication of code. They are typically used to validate something
-    // before a function is allowed to be executed.
-
     /**
     * @dev Modifier that requires the "operational" boolean variable to be "true"
     *      This is used on all state changing functions to pause the contract in
@@ -62,8 +65,13 @@ contract FlightSuretyApp {
     */
     modifier requireIsOperational() {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");
+        require(operational, "Contract is currently not operational");
         _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+    modifier differentModeRequest(bool status) {
+        require(status != operational, "Contract already in the state requested");
+        _;
     }
 
     /**
@@ -71,6 +79,13 @@ contract FlightSuretyApp {
     */
     modifier requireContractOwner() {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    /* Choice to make it part of app contract as it is a business rule that might change.
+    In this case a new app contract would be deployed while the data contract stays the same */
+    modifier enoughFund() {
+        require(msg.value >= minFund, "Minimun funding amount is 10 ETH");
         _;
     }
 
@@ -83,40 +98,47 @@ contract FlightSuretyApp {
     */
     // TODO: instantiate data contract in app constructor
     constructor(address dataContractAddress) public {
+        operational = true;
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContractAddress);
     }
 
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
-
-    function isOperational() public pure returns(bool)
+    ////////////// UTILITY FUNCTIONS ///////////////////
+    function setOperatingStatus(bool mode) external requireContractOwner
+    differentModeRequest(mode)
     {
-        return true;  // Modify to call data contract's status
+        operational = mode;
     }
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
-
-
    /**
     * @dev Add an airline to the registration queue
     *
     */
     function registerAirline(address airlineAddress)
     external
+    requireIsOperational
     {
         flightSuretyData.registerAirline(airlineAddress, msg.sender);
     }
 
+    function fund()
+    external
+    enoughFund
+    payable
+    {
+        flightSuretyData.fund.value(msg.value)(msg.sender);
+    }
 
    /**
     * @dev Register a future flight for insuring.
     *
     */
-    function registerFlight() external pure
+    function registerFlight()
+    external
+    pure
     {
 
     }
@@ -201,11 +223,7 @@ contract FlightSuretyApp {
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
     // Register an oracle with the contract
-    function registerOracle
-                            (
-                            )
-                            external
-                            payable
+    function registerOracle() external payable
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
@@ -224,9 +242,6 @@ contract FlightSuretyApp {
 
         return oracles[msg.sender].indexes;
     }
-
-
-
 
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
@@ -261,7 +276,6 @@ contract FlightSuretyApp {
             processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
-
 
     function getFlightKey
     (
