@@ -4,7 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract FlightSuretyData {
-    using SafeMath for uint256;
+    using SafeMath for uint8;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
@@ -13,6 +13,18 @@ contract FlightSuretyData {
     address private contractOwner;         // Account used to deploy contract
     bool public operational = true;       // Blocks all state changes throughout the contract if false
     mapping(address => bool) public authorizedCallers;
+
+    struct Airline {
+        bool registered;
+        bool funded;
+    }
+
+    mapping(address => Airline) public airlines;
+
+    uint8 public registeredAirlinesCount;
+    address public firstAirline;
+
+    address[] multiCalls = new address[](0);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -20,8 +32,14 @@ contract FlightSuretyData {
     * @dev Constructor
     *      The deploying account becomes contractOwner
     */
-    constructor() public {
+
+    constructor(address _firstAirline) public {
         contractOwner = msg.sender;
+
+        // register first airline at deployment
+        firstAirline = _firstAirline;
+        registeredAirlinesCount = 1;
+        airlines[firstAirline].registered = true;
     }
 
     /********************************************************************************************/
@@ -47,35 +65,50 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier callerAuthorized(address callerAddress) {
-        require(authorizedCallers[callerAddress] == true, "Address not authorized to call this function");
+    // restrict function calls to previously authorized addresses
+    modifier callerAuthorized() {
+        require(authorizedCallers[msg.sender] == true, "Address not authorized to call this function");
+        _;
+    }
+
+    // To avoid spending gas trying to put the contract in a state it already is in
+    modifier differentModeRequest(bool status) {
+        require(status != operational, "Contract already in the state requested");
+        _;
+    }
+
+    modifier airlineRegistered() {
+        require(
+            airlines[msg.sender].registered == true,
+            "Airline must be registered  before being able to perform this action");
+        _;
+    }
+
+    modifier airlineFunded() {
+        require(
+            airlines[msg.sender].funded == true,
+            "Airline must spend the funding fee before being able to perform this action");
         _;
     }
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
-
-    /**
-    * @dev Get operating status of contract
-    *
-    * @return A bool that is the current operating status
-    */
-    function isOperational() public view returns(bool)
-    {
-        return operational;
-    }
-
     /**
     * @dev Sets contract operations on/off
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */
     function setOperatingStatus(bool mode) external requireContractOwner
+    differentModeRequest(mode)
     {
         operational = mode;
     }
 
-    function authorizeCaller(address callerAddress) external requireContractOwner
+    // function to authorize addresses (especially the App contract!) to call functions from flighSuretyData contract
+    function authorizeCaller(address callerAddress)
+    external
+    requireContractOwner
+    requireIsOperational
     {
         authorizedCallers[callerAddress] = true;
     }
@@ -89,16 +122,46 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */
-    function registerAirline() external pure
+    function registerAirline(address airlineAddress)
+    external
+    requireIsOperational
+    callerAuthorized
+    airlineRegistered
     {
+        // only first Airline can register a new airline when less than 4 airlines are registered
+        if (registeredAirlinesCount < 4) {
+            require(
+                firstAirline == msg.sender,
+                "Less than 4 airlines registered: only first airline registered can register new ones");
+            registeredAirlinesCount++;
+            airlines[airlineAddress].registered = true;
+        } else {
+            // multi party consensus
+            bool isDuplicate = false;
+            for (uint i=0; i < multiCalls.length; i++) {
+                if (multiCalls[i] == msg.sender) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            require(!isDuplicate, "Caller cannot call this function twice");
+            multiCalls.push(msg.sender);
+            if (multiCalls.length > registeredAirlinesCount.div(2)) {
+                airlines[airlineAddress].registered = true;
+                multiCalls = new address[](0);
+            }
+        }
     }
 
 
    /**
-    * @dev Buy insurance for a flight
+    * @dev Passenger Buys insurance for a flight
     *
     */
-    function buy() external payable
+    function buy()
+    external
+    requireIsOperational
+    payable
     {
 
     }
@@ -106,7 +169,10 @@ contract FlightSuretyData {
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees() external pure
+    function creditInsurees()
+    external
+    requireIsOperational
+    view
     {
     }
 
@@ -115,7 +181,10 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay() external pure
+    function pay()
+    external
+    requireIsOperational
+    view
     {
     }
 
@@ -124,7 +193,11 @@ contract FlightSuretyData {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */
-    function fund() public payable
+    function fund()
+    public
+    requireIsOperational
+    airlineRegistered
+    payable
     {
     }
 
