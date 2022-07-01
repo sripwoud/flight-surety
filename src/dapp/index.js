@@ -29,15 +29,30 @@ import './flightsurety.css'
       const landing = new Date(DOM.elid('regFlightLanding').value).getTime()
       const flight = DOM.elid('regFlightRef').value
       const price = DOM.elid('regFlightPrice').value
-      console.log(takeOff)
       contract.registerFlight(
         takeOff,
         landing,
         flight,
         price,
         (error, result) => {
-          display('Airline', 'Register Flight', [{ label: 'Flight', error: error, value: `${result.flight} ${result.takeOff} ${result.landing}` }])
+          display(`Airline ${result.address}`, 'Register Flight', [{
+            label: 'Flight',
+            error: error,
+            value: `${result.flight}
+            ${new Date(result.takeOff).toString().slice(0, -42)} -
+            ${new Date(result.landing).toString().slice(0, -42)}` }])
         })
+    })
+
+    // Provide funding
+    DOM.elid('fund').addEventListener('click', () => {
+      let amount = DOM.elid('fundAmount').value
+      contract.fund(amount, (error, result) => {
+        display(`Airline ${result.address}`, 'Provide Funding', [{
+          label: 'Funding',
+          error: error,
+          value: `${result.amount} ETH` }])
+      })
     })
   })
 })()
