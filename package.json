@@ -44,6 +44,7 @@
     "webpack-node-externals": "1.7.2"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "keccak256": "^1.0.0",
     "truffle-assertions": "^0.8.0"
   }
