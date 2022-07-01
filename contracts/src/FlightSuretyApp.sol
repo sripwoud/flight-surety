@@ -6,7 +6,7 @@ pragma solidity ^0.4.25;
 https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 */
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "oz/SafeMath.sol";
 
 
 // FlightSuretyData Interface contract
