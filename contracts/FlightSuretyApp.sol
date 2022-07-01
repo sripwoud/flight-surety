@@ -27,7 +27,7 @@ contract FlightSuretyData {
     )
     external;
 
-    function buy(bytes32 flightKey, uint amount, address originAddress) external payable;
+    function book(bytes32 flightKey, uint amount, address originAddress) external payable;
     function votesLeft(address airlineToBeAdded) external view returns(uint);
 }
 
@@ -47,7 +47,7 @@ contract FlightSuretyApp {
     FlightSuretyData flightSuretyData;
 
     // minimum funding amount
-    uint minFund = 10 ether;
+    uint public minFund = 10 ether;
 
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
@@ -109,6 +109,11 @@ contract FlightSuretyApp {
         _;
     }
 
+    modifier valWithinRange(uint val, uint low, uint up) {
+        require(val < up, "Value higher than max allowed");
+        require(val > low, "Value lower than min allowed");
+        _;
+    }
     //////////////////////////////// CONSTRUCTOR
 
     constructor(address dataContractAddress) public {
@@ -171,7 +176,7 @@ contract FlightSuretyApp {
         emit FlightRegistered(flightRef);
     }
 
-    function buy
+    function book
     (
         string _flight,
         string _to,
@@ -179,15 +184,13 @@ contract FlightSuretyApp {
         uint amount
     )
     external
+    valWithinRange(amount, 0, 1 ether)
     requireIsOperational
     payable
     {
-        require(amount > 0, "Insurance amount must be >= 0");
         bytes32 flightKey= getFlightKey(_flight, _to, _landing);
 
-        flightSuretyData.buy.value(msg.value)(flightKey, amount, msg.sender);
-
-
+        flightSuretyData.book.value(msg.value)(flightKey, amount.mul(3).div(2), msg.sender);
     }
 
    //Called after oracle has updated flight status
