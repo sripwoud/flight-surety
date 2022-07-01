@@ -157,6 +157,7 @@ contract FlightSuretyData {
     callerAuthorized
     airlineRegistered(originAddress) // redundant?
     airlineFunded(originAddress)
+    returns (uint additionalVotesRequired)
     {
         // only first Airline can register a new airline when less than 4 airlines are registered
         if (registeredAirlinesCount < 4) {
@@ -181,6 +182,7 @@ contract FlightSuretyData {
                 registeredAirlinesCount++;
                 multiCalls = new address[](0);
             }
+            additionalVotesRequired = threshold() - multiCalls.length;
         }
     }
 
