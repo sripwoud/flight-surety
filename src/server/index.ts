@@ -7,11 +7,14 @@ const app = express()
 
 import config from './config'
 import Server from './Server'
-import { dataContract, appContract } from './web3'
+import { dataContract, appContract } from './eth'
 
 const start = () => {
-  const server = new Server({ dataContract, appContract })
-  server.init(config.NUM_ORACLES)
+  const server = new Server({
+    dataContract,
+    appContract,
+    numOracles: config.NUM_ORACLES
+  })
 
   const contextHandler = (req: Request, _: Response, next: NextFunction) => {
     req.locals = { dataContract, appContract, server }
