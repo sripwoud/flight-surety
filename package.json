@@ -12,7 +12,7 @@
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
     "server": "rm -rf ./build/server && webpack --config webpack.config.server.js",
-    "start": "ts-node-dev --poll src/server/index.ts"
+    "start": "ts-node-dev --poll -T src/server/index.ts"
   },
   "author": "r1oga",
   "devDependencies": {
