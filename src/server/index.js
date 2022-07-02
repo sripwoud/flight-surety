@@ -1,15 +1,4 @@
+import app from './app'
 
-import http from 'http'
-import app from './server'
-
-const server = http.createServer(app)
-let currentApp = app
-server.listen(3000)
-
-if (module.hot) {
-  module.hot.accept('./server', () => {
-    server.removeListener('request', currentApp)
-    server.on('request', app)
-    currentApp = app
-  })
-}
+app.set('json spaces', 2)
+app.listen(3000, () => console.log(`Oracles server 👂 on port 3000`))
