@@ -27,17 +27,18 @@ const updateInConfigFile = (fieldName, value) => {
 
 const deploy = async (contractName, params) => {
   const fieldName = `${contractName.toLowerCase()}Address`
+  const artifact = require(`../contracts/out/FlightSurety${contractName}.sol/FlightSurety${contractName}.json`)
   const address = config[fieldName]
+
   if (address) {
     const bytecode = await provider.send('eth_getCode', [address, 'latest'])
-    const exists = bytecode === '0x'
-    if (!exists) {
+    const exists = bytecode !== '0x'
+    if (exists) {
       console.log(`${contractName} Contract already deployed at ${address}`)
-      return
+      return new ethers.Contract(address, artifact.abi, signer)
     }
   }
 
-  const artifact = require(`../contracts/out/FlightSurety${contractName}.sol/FlightSurety${contractName}.json`)
   const Contract = new ethers.ContractFactory(
     artifact.abi,
     artifact.bytecode,
@@ -55,7 +56,11 @@ const deploy = async (contractName, params) => {
 
 async function main() {
   const data = await deploy('Data', [signer.address])
-  await deploy('App', [data.address])
+  const app = await deploy('App', [data.address])
+
+  const tx = await data.authorizeCaller(app.address)
+  await tx.wait()
+  console.log('Authorized App Contract')
 }
 
 // We recommend this pattern to be able to use async/await everywhere
