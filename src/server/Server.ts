@@ -1,24 +1,41 @@
-import config from './config.json'
+import { EventData } from 'web3-eth-contract'
 
-const { NUMBER_ACCOUNTS } = config // update in truffle.js and start ganacle-cli with the right number of accounts if necessary
+import config from './config'
+import { web3 } from './web3'
 
-const Server = ({ dataContract, appContract }) => ({
-  oracles: [],
-  flights: [],
-  states: {
+const { NUM_ACCOUNTS } = config // update in truffle.js and start ganacle-cli with the right number of accounts if necessary
+
+class Server {
+  oracles: string[] = []
+  flights: { index: number; key: string; flight: string }[] = []
+  states: Record<number, string> = {
     0: 'unknown',
     10: 'on time',
     20: 'late due to airline',
     30: 'late due to weather',
     40: 'late due to technical reason',
     50: 'late due to other reason'
-  },
+  }
 
-  init: async function (numberOracles) {
+  dataContract
+  appContract
+
+  constructor({
+    dataContract,
+    appContract
+  }: {
+    dataContract: any
+    appContract: any
+  }) {
+    this.dataContract = dataContract
+    this.appContract = appContract
+  }
+
+  init = async (numberOracles: number) => {
     // EVENTS LISTENERS
-    appContract.events
+    this.appContract.events
       .OracleRegistered()
-      .on('data', (log) => {
+      .on('data', (log: EventData) => {
         const {
           event,
           returnValues: { indexes }
@@ -27,25 +44,25 @@ const Server = ({ dataContract, appContract }) => ({
           `${event}: indexes ${indexes[0]} ${indexes[1]} ${indexes[2]}`
         )
       })
-      .on('error', (error) => {
+      .on('error', (error: Error) => {
         console.log(error)
       })
 
-    dataContract.events
+    this.dataContract.events
       .AirlineRegistered()
-      .on('data', (log) => {
+      .on('data', (log: EventData) => {
         const {
           returnValues: { origin, newAirline }
         } = log
         console.log(`${origin} registered ${newAirline}`)
       })
-      .on('error', (error) => {
+      .on('error', (error: Error) => {
         console.log(error)
       })
 
-    appContract.events
+    this.appContract.events
       .FlightRegistered()
-      .on('data', async (log) => {
+      .on('data', async (log: EventData) => {
         const {
           event,
           returnValues: { flightRef, to, landing }
@@ -53,13 +70,13 @@ const Server = ({ dataContract, appContract }) => ({
         console.log(`${event}: ${flightRef} to ${to} landing ${landing}`)
 
         // store new flight
-        const indexFlightKeys = await dataContract.methods
+        const indexFlightKeys = await this.dataContract.methods
           .indexFlightKeys()
           .call()
-        const key = await dataContract.methods
+        const key = await this.dataContract.methods
           .flightKeys(indexFlightKeys)
           .call()
-        const flight = await dataContract.methods.flights(key).call()
+        const flight = await this.dataContract.methods.flights(key).call()
         for (let j = 0; j < 9; j++) {
           delete flight[j]
         }
@@ -69,16 +86,16 @@ const Server = ({ dataContract, appContract }) => ({
           flight: flight
         })
       })
-      .on('error', (error) => {
+      .on('error', (error: Error) => {
         console.log(error)
       })
 
-    appContract.events
+    this.appContract.events
       .OracleRequest()
-      .on('error', (error) => {
+      .on('error', (error: Error) => {
         console.log(error)
       })
-      .on('data', async (log) => {
+      .on('data', async (log: EventData) => {
         const {
           event,
           returnValues: { index, flight, destination, timestamp }
@@ -90,7 +107,7 @@ const Server = ({ dataContract, appContract }) => ({
         await this.submitResponses(flight, destination, timestamp)
       })
 
-    appContract.events.OracleReport().on('data', (log) => {
+    this.appContract.events.OracleReport().on('data', (log: EventData) => {
       const {
         event,
         returnValues: { flight, destination, timestamp, status }
@@ -100,9 +117,9 @@ const Server = ({ dataContract, appContract }) => ({
       )
     })
 
-    appContract.events
+    this.appContract.events
       .FlightStatusInfo()
-      .on('data', (log) => {
+      .on('data', (log: EventData) => {
         const {
           event,
           returnValues: { flight, destination, timestamp, status }
@@ -111,11 +128,11 @@ const Server = ({ dataContract, appContract }) => ({
           `${event}: flight ${flight}, to ${destination}, landing ${timestamp}, status ${this.states[status]}`
         )
       })
-      .on('error', (error) => {
+      .on('error', (error: Error) => {
         console.log(error)
       })
 
-    appContract.events.FlightProcessed().on('data', (log) => {
+    this.appContract.events.FlightProcessed().on('data', (log: EventData) => {
       const {
         event,
         returnValues: { flightRef, destination, timestamp, statusCode }
@@ -125,17 +142,17 @@ const Server = ({ dataContract, appContract }) => ({
       )
     })
 
-    dataContract.events
+    this.dataContract.events
       .Funded()
-      .on('data', (log) => {
+      .on('data', (log: EventData) => {
         const {
           returnValues: { airline }
         } = log
         console.log(`${airline} provided funding`)
       })
-      .on('error', (error) => console.log(error))
+      .on('error', (error: Error) => console.log(error))
 
-    appContract.events.WithdrawRequest().on('data', (log) => {
+    this.appContract.events.WithdrawRequest().on('data', (log: EventData) => {
       const {
         event,
         returnValues: { recipient }
@@ -143,7 +160,7 @@ const Server = ({ dataContract, appContract }) => ({
       console.log(`${event} from ${recipient}`)
     })
 
-    dataContract.events.Paid().on('data', (log) => {
+    this.dataContract.events.Paid().on('data', (log: EventData) => {
       const {
         event,
         returnValues: { recipient, amount }
@@ -151,7 +168,7 @@ const Server = ({ dataContract, appContract }) => ({
       console.log(`${event} ${amount} to ${recipient}`)
     })
 
-    dataContract.events.Credited().on('data', (log) => {
+    this.dataContract.events.Credited().on('data', (log: EventData) => {
       const {
         event,
         returnValues: { passenger, amount }
@@ -160,67 +177,79 @@ const Server = ({ dataContract, appContract }) => ({
     })
 
     // Authorize
-    await dataContract.methods.authorizeCaller(appContract._address)
+    await this.dataContract.methods.authorizeCaller(this.appContract._address)
 
     // Add oracles addresses
     this.oracles = (await web3.eth.getAccounts()).slice(
-      NUMBER_ACCOUNTS - numberOracles
+      NUM_ACCOUNTS - numberOracles
     )
     // register oracles
-    const REGISTRATION_FEE = await appContract.methods.REGISTRATION_FEE().call()
-    this.oracles.forEach(async (account) => {
-      try {
-        await appContract.methods.registerOracle().send({
-          from: account,
-          value: REGISTRATION_FEE,
-          gas: 4712388,
-          gasPrice: 100000000000
-        })
-      } catch (error) {
-        // console.log(error.message)
-      }
-    })
-
-    // get and store existing flights
-    this.updateFlights()
-  },
-
-  submitResponses: async function (flight, destination, timestamp) {
-    this.oracles.forEach(async (oracle) => {
-      // random number out of [10, 20, 30, 40, 50]
-      const statusCode = (Math.floor(Math.random() * 5) + 1) * 10
-      // get indexes
-      const oracleIndexes = await appContract.methods
-        .getMyIndexes()
-        .call({ from: oracle })
-      oracleIndexes.forEach(async (index) => {
+    const REGISTRATION_FEE = await this.appContract.methods
+      .REGISTRATION_FEE()
+      .call()
+    await Promise.all(
+      this.oracles.map(async (account: string) => {
         try {
-          await appContract.methods
-            .submitOracleResponse(
-              index,
-              flight,
-              destination,
-              +timestamp,
-              statusCode
-            )
-            .send({ from: oracle })
+          await this.appContract.methods.registerOracle().send({
+            from: account,
+            value: REGISTRATION_FEE,
+            gas: 4712388,
+            gasPrice: 100000000000
+          })
         } catch (error) {
           // console.log(error.message)
         }
       })
-    })
-  },
+    )
 
-  updateFlights: async function () {
+    // get and store existing flights
+    this.updateFlights()
+  }
+
+  submitResponses = async (
+    flight: string,
+    destination: string,
+    timestamp: number
+  ) => {
+    await Promise.all(
+      this.oracles.map(async (oracle) => {
+        // random number out of [10, 20, 30, 40, 50]
+        const statusCode = (Math.floor(Math.random() * 5) + 1) * 10
+        // get indexes
+        const oracleIndexes: number[] = await this.appContract.methods
+          .getMyIndexes()
+          .call({ from: oracle })
+
+        await Promise.all(
+          oracleIndexes.map(async (index) => {
+            try {
+              await this.appContract.methods
+                .submitOracleResponse(
+                  index,
+                  flight,
+                  destination + timestamp,
+                  statusCode
+                )
+                .send({ from: oracle })
+            } catch (error) {
+              // console.log(error.message)
+            }
+          })
+        )
+      })
+    )
+  }
+
+  updateFlights = async () => {
     // Clean array
     this.flights = []
     try {
-      const indexFlightKeys = await dataContract.methods
+      const indexFlightKeys = await this.dataContract.methods
         .indexFlightKeys()
         .call()
       for (let i = 0; i < indexFlightKeys + 1; i++) {
-        const key = await dataContract.methods.flightKeys(i).call()
-        const flight = await dataContract.methods.flights(key).call()
+        const key = await this.dataContract.methods.flightKeys(i).call()
+        const flight = await this.dataContract.methods.flights(key).call()
         for (let j = 0; j < 9; j++) {
           delete flight[j]
         }
@@ -235,6 +264,6 @@ const Server = ({ dataContract, appContract }) => ({
       // console.log('No flights to add')
     }
   }
-})
+}
 
 export default Server
