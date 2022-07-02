@@ -1,7 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express'
+import 'express-async-errors'
 
 import router from './routes'
-import middlewares from './middlewares'
+import middlewares, { notFoundErrorHandler } from './middlewares'
 
 const app = express()
 
@@ -24,6 +25,8 @@ const start = () => {
   app.set('json spaces', 2)
   app.use([contextHandler, ...middlewares, router])
   app.listen(3000, () => console.log(`Oracles server 👂 on port 3000`))
+
+  app.all('*', notFoundErrorHandler)
 }
 
 start()

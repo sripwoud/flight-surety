@@ -1,3 +1,5 @@
-export default ({ locals: { server } }, res) => {
-  res.json(server.flights)
+import { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.json(req.locals.server.flights)
 }

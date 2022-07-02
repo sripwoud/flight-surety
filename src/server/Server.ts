@@ -18,10 +18,10 @@ class Server {
   appContract
 
   constructor({
-                dataContract,
-                appContract,
-                numOracles
-              }: {
+    dataContract,
+    appContract,
+    numOracles
+  }: {
     dataContract: any
     appContract: any
     numOracles: number
@@ -90,13 +90,9 @@ class Server {
 
     await Promise.all(
       this.oracles.map(async (oracle: number) => {
-        try {
-          await this.appContract
-            .connect(oracle)
-            .registerOracle.send(REGISTRATION_FEE)
-        } catch (error) {
-          // console.log(error.message)
-        }
+        await this.appContract
+          .connect(oracle)
+          .registerOracle.send(REGISTRATION_FEE)
       })
     )
 
@@ -119,18 +115,14 @@ class Server {
 
         await Promise.all(
           oracleIndexes.map(async (index) => {
-            try {
-              await this.appContract
-                .connect(oracle)
-                .submitOracleResponse(
-                  index,
-                  flight,
-                  destination + timestamp,
-                  statusCode
-                )
-            } catch (error) {
-              // console.log(error.message)
-            }
+            await this.appContract
+              .connect(oracle)
+              .submitOracleResponse(
+                index,
+                flight,
+                destination + timestamp,
+                statusCode
+              )
           })
         )
       })
@@ -140,25 +132,22 @@ class Server {
   updateFlights = async () => {
     // Clean array
     this.flights = []
-    try {
-      const indexFlightKeys: number = await this.dataContract.indexFlightKeys()
-      for (let i = 0; i < indexFlightKeys + 1; i++) {
-        const key: string = await this.dataContract.flightKeys(i)
-        const flight = await this.dataContract.flights(key)
 
-        for (let j = 0; j < 9; j++) {
-          delete flight[j]
-        }
+    const indexFlightKeys: number = await this.dataContract.indexFlightKeys()
+    for (let i = 0; i < indexFlightKeys + 1; i++) {
+      const key: string = await this.dataContract.flightKeys(i)
+      const flight = await this.dataContract.flights(key)
 
-        // as unique key, an index is added and will be displayed in the front end form (instead of displaying the hash key)
-        this.flights.push({
-          index: i,
-          key: key,
-          flight: flight
-        })
+      for (let j = 0; j < 9; j++) {
+        delete flight[j]
       }
-    } catch (error) {
-      // console.log('No flights to add')
+
+      // as unique key, an index is added and will be displayed in the front end form (instead of displaying the hash key)
+      this.flights.push({
+        index: i,
+        key: key,
+        flight: flight
+      })
     }
   }
 }
