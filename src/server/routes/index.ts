@@ -1,6 +1,6 @@
 import { Router } from 'express'
 
-import { getFlightKey } from '../middlewares'
+import getFlightKey from '../middlewares/get-flight-key'
 import apiRouter from './api'
 import flightRouter from './flight'
 import flightsRouter from './flights'
