@@ -6,15 +6,15 @@ import middlewares, { notFoundErrorHandler } from './middlewares'
 
 const app = express()
 
-import config from './config'
+import config from '../../config.json'
 import Server from './Server'
-import { dataContract, appContract } from './eth'
+import { dataContract, appContract } from '../eth'
 
 const start = () => {
   const server = new Server({
     dataContract,
     appContract,
-    numOracles: config.NUM_ORACLES
+    numOracles: config.numOracles
   })
 
   const contextHandler = (req: Request, _: Response, next: NextFunction) => {

@@ -1,1 +1,1 @@
-oz/=lib/oz
+oz/=lib/oz/

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 
-import app from '../../../contracts/out/FlightSuretyApp.sol/FlightSuretyApp.json'
-import data from '../../../contracts/out/FlightSuretyData.sol/FlightSuretyData.json'
+import app from '../../_contracts/out/FlightSuretyApp.sol/FlightSuretyApp.json'
+import data from '../../_contracts/out/FlightSuretyData.sol/FlightSuretyData.json'
 
 import config from '../config'
 import wallet from './wallet'

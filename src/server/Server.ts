@@ -1,6 +1,6 @@
-import config from './config'
+import config from '../../config.json'
 
-const { NUM_ACCOUNTS } = config // update in truffle.js and start ganacle-cli with the right number of accounts if necessary
+const { numAccounts } = config // update in truffle.js and start ganacle-cli with the right number of accounts if necessary
 
 class Server {
   oracles: number[]
@@ -28,7 +28,7 @@ class Server {
   }) {
     this.dataContract = dataContract
     this.appContract = appContract
-    this.oracles = [...Array(NUM_ACCOUNTS - numOracles).keys()]
+    this.oracles = [...Array(numAccounts - numOracles).keys()]
 
     this.init()
   }

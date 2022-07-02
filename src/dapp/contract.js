@@ -1,10 +1,9 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json'
 import FlightSuretyData from '../../build/contracts/FlightSuretyData.json'
 import Config from './config.json'
-import Web3 from 'web3'
 
 export default class Contract {
-  constructor (network, callback) {
+  constructor(network, callback) {
     let config = Config[network]
     // Inject web3
     if (window.ethereum) {
@@ -26,13 +25,19 @@ export default class Contract {
     }
 
     // Load contract
-    this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress)
-    this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.appAddress)
+    this.flightSuretyApp = new this.web3.eth.Contract(
+      FlightSuretyApp.abi,
+      config.appAddress
+    )
+    this.flightSuretyData = new this.web3.eth.Contract(
+      FlightSuretyData.abi,
+      config.appAddress
+    )
     this.initialize(callback)
     this.account = null
   }
 
-  initialize (callback) {
+  initialize(callback) {
     this.web3.eth.getAccounts((error, accts) => {
       if (!error) {
         this.account = accts[0]
@@ -43,14 +48,14 @@ export default class Contract {
     })
   }
 
-  isOperational (callback) {
+  isOperational(callback) {
     let self = this
     self.flightSuretyApp.methods
       .operational()
       .call({ from: self.account }, callback)
   }
 
-  async fetchFlightStatus (flight, destination, landing) {
+  async fetchFlightStatus(flight, destination, landing) {
     try {
       await this.flightSuretyApp.methods
         .fetchFlightStatus(flight, destination, landing)
@@ -62,7 +67,7 @@ export default class Contract {
     }
   }
 
-  async registerAirline (airline) {
+  async registerAirline(airline) {
     try {
       await this.flightSuretyApp.methods
         .registerAirline(airline)
@@ -79,7 +84,7 @@ export default class Contract {
     }
   }
 
-  async registerFlight (takeOff, landing, flight, price, from, to) {
+  async registerFlight(takeOff, landing, flight, price, from, to) {
     try {
       const priceWei = this.web3.utils.toWei(price.toString(), 'ether')
       await this.flightSuretyApp.methods
@@ -97,19 +102,20 @@ export default class Contract {
     }
   }
 
-  fund (amount, callback) {
+  fund(amount, callback) {
     let self = this
-    self.flightSuretyApp.methods
-      .fund()
-      .send({
+    self.flightSuretyApp.methods.fund().send(
+      {
         from: self.account,
         value: self.web3.utils.toWei(amount, 'ether')
-      }, (error, result) => {
+      },
+      (error, result) => {
         callback(error, { address: self.account, amount: amount })
-      })
+      }
+    )
   }
 
-  async book (flight, to, landing, price, insurance) {
+  async book(flight, to, landing, price, insurance) {
     let total = +price + +insurance
     total = total.toString()
     const amount = this.web3.utils.toWei(insurance.toString(), 'ether')
@@ -129,9 +135,7 @@ export default class Contract {
     }
   }
 
-  async withdraw () {
-    await this.flightSuretyApp.methods
-      .withdraw()
-      .send({ from: this.account })
+  async withdraw() {
+    await this.flightSuretyApp.methods.withdraw().send({ from: this.account })
   }
 }
