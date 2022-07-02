@@ -170,7 +170,7 @@ contract FlightSuretyData {
     )
     public
     pure
-    returns(bytes32)
+    returns (bytes32)
     {
         return keccak256(abi.encodePacked(flightRef, destination, timestamp));
     }
@@ -184,7 +184,7 @@ contract FlightSuretyData {
     )
     public
     view
-    returns(bool onFlight)
+    returns (bool onFlight)
     {
         bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
         onFlight = flights[flightKey].bookings[passenger];
@@ -199,7 +199,7 @@ contract FlightSuretyData {
     )
     public
     view
-    returns(uint amount)
+    returns (uint amount)
     {
         bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
         amount = flights[flightKey].insurances[passenger];
@@ -214,8 +214,8 @@ contract FlightSuretyData {
     }
 
     //////////////////////// SMART CONTRACT FUNCTIONS
-   /**
-    * @dev Add an airline to the registration queue
+    /**
+     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
     *
     */
@@ -268,8 +268,8 @@ contract FlightSuretyData {
     }
 
 
-   /**
-    * @dev Passenger Buys insurance for a flight
+    /**
+     * @dev Passenger Buys insurance for a flight
     *
     */
     function book(bytes32 flightKey, uint amount, address originAddress)
@@ -321,8 +321,8 @@ contract FlightSuretyData {
         emit Paid(originAddress, amount);
     }
 
-   /**
-    * @dev Initial funding for the insurance. Unless there are too many delayed flights
+    /**
+     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */

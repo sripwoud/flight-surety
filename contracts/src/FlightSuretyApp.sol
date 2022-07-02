@@ -13,6 +13,7 @@ import "oz/SafeMath.sol";
 contract FlightSuretyData {
 
     function registerAirline(address airlineAddress, address originAddress) external;
+
     function fund(address originAddress) external payable;
 
     function registerFlight
@@ -28,12 +29,19 @@ contract FlightSuretyData {
     external;
 
     function book(bytes32 flightKey, uint amount, address originAddress) external payable;
+
     function pay(address originAddress) external;
-    function processFlightStatus(bytes32 flightKey, uint8 status)  external;
+
+    function processFlightStatus(bytes32 flightKey, uint8 status) external;
+
     function getFlightPrice(bytes32 flightKey) external view returns (uint);
+
     function hasFunded(address airlineAddress) external view returns (bool);
+
     function isRegistered(address airlineAddress) external view returns (bool);
+
     function registeredAirlinesCount() external view returns (uint);
+
     function firstAirline() external view returns (address);
 
 
@@ -180,7 +188,7 @@ contract FlightSuretyApp {
         } else {
             // multi party consensus
             bool isDuplicate = false;
-            for (uint i=0; i < votes[airlineAddress].length; i++) {
+            for (uint i = 0; i < votes[airlineAddress].length; i++) {
                 if (votes[airlineAddress][i] == msg.sender) {
                     isDuplicate = true;
                     break;
@@ -245,7 +253,7 @@ contract FlightSuretyApp {
     requireIsOperational
     payable
     {
-        bytes32 flightKey= getFlightKey(_flight, _to, _landing);
+        bytes32 flightKey = getFlightKey(_flight, _to, _landing);
 
         flightSuretyData.book.value(msg.value)(flightKey, amount.mul(3).div(2), msg.sender);
     }
@@ -258,7 +266,7 @@ contract FlightSuretyApp {
         emit WithdrawRequest(msg.sender);
     }
 
-   //Called after oracle has updated flight status
+    //Called after oracle has updated flight status
     function processFlightStatus
     (
         string flightRef,
@@ -291,14 +299,14 @@ contract FlightSuretyApp {
         // Generate a unique key for storing the request
         bytes32 key = getFlightKey(flight, destination, timestamp);
         oracleResponses[key] = ResponseInfo({
-            requester: msg.sender,
-            isOpen: true
+        requester : msg.sender,
+        isOpen : true
         });
 
         emit OracleRequest(index, flight, destination, timestamp);
     }
 
-////////////////////// START ORACLE MANAGEMENT REGION
+    ////////////////////// START ORACLE MANAGEMENT REGION
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;
 
@@ -351,13 +359,13 @@ contract FlightSuretyApp {
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
         oracles[msg.sender] = Oracle({
-            isRegistered: true,
-            indexes: indexes
+        isRegistered : true,
+        indexes : indexes
         });
         emit OracleRegistered(indexes);
     }
 
-    function getMyIndexes() external view returns(uint8[3])
+    function getMyIndexes() external view returns (uint8[3])
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
 
@@ -412,13 +420,13 @@ contract FlightSuretyApp {
     )
     internal
     pure
-    returns(bytes32)
+    returns (bytes32)
     {
         return keccak256(abi.encodePacked(flightRef, destination, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
-    function generateIndexes(address account) internal returns(uint8[3])
+    function generateIndexes(address account) internal returns (uint8[3])
     {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
@@ -451,12 +459,13 @@ contract FlightSuretyApp {
             ) % maxValue);
 
         if (nonce > 250) {
-            nonce = 0;  // Can only fetch blockhashes for last 256 blocks so we adapt
+            nonce = 0;
+            // Can only fetch blockhashes for last 256 blocks so we adapt
         }
 
         return random;
     }
 
-//////////////////////// END ORACLE MANAGEMENT REGION
+    //////////////////////// END ORACLE MANAGEMENT REGION
 
 }
