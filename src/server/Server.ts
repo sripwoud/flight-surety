@@ -1,9 +1,14 @@
-import config from '../../config.json'
+import Signers from '../eth/signers'
+import { BigNumber, Wallet } from 'ethers'
 
-const { numAccounts } = config // update in truffle.js and start ganacle-cli with the right number of accounts if necessary
+const watchEvent = (eventName: string, contract: any) => {
+  contract.on(eventName, (data: any) => {
+    console.log(eventName, data)
+  })
+}
 
 class Server {
-  oracles: number[]
+  oracles: Wallet[]
   flights: { index: number; key: string; flight: string }[] = []
   // states: Record<number, string> = {
   //   0: 'unknown',
@@ -28,30 +33,25 @@ class Server {
   }) {
     this.dataContract = dataContract
     this.appContract = appContract
-    this.oracles = [...Array(numAccounts - numOracles).keys()]
-
-    this.init()
+    this.oracles = Signers(numOracles)
   }
 
   // random number out of [10, 20, 30, 40, 50]
   getStatusCode = () => (Math.floor(Math.random() * 5) + 1) * 10
 
-  logEvent = (...args: any[]) => {
-    console.log(args[3])
-  }
-
   listenToInfoEvents = () => {
+    ;['AirlineRegistered', 'Funded', 'Paid', 'Credited'].forEach((event) => {
+      watchEvent(event, this.dataContract)
+    })
     ;[
       'OracleRegistered',
-      'AirlineRegistered',
       'OracleReport',
       'FlightStatusInfo',
       'FlightProcessed',
-      'Funded',
-      'WithdrawRequest',
-      'Paid',
-      'Credited'
-    ].forEach(this.logEvent)
+      'WithdrawRequest'
+    ].forEach((event) => {
+      watchEvent(event, this.appContract)
+    })
   }
 
   storeFlight = async () => {
@@ -73,31 +73,31 @@ class Server {
   init = async () => {
     this.listenToInfoEvents()
 
-    this.appContract.on('FlightRegistered', (...args: any[]) => {
-      this.logEvent(...args)
+    this.appContract.on('FlightRegistered', (data: any[]) => {
+      console.log('FlightRegistered', data)
       this.storeFlight()
     })
 
-    this.appContract.on('OracleRequest', (...args: any[]) => {
-      this.logEvent(...args)
+    this.appContract.on('OracleRequest', (data: any[]) => {
+      console.log('FlightRegistered', data)
       // this.submitResponses(flight, destination, timestamp)
     })
 
-    await this.dataContract.authorizeCaller(this.appContract.address)
-
-    // register oracles
     const REGISTRATION_FEE = await this.appContract.REGISTRATION_FEE()
 
-    await Promise.all(
-      this.oracles.map(async (oracle: number) => {
-        await this.appContract
-          .connect(oracle)
-          .registerOracle.send(REGISTRATION_FEE)
-      })
-    )
+    // register oracles
+    for (const oracle of this.oracles) {
+      console.log(oracle.address)
+      const tx = await this.appContract
+        .connect(oracle)
+        .registerOracle({ value: REGISTRATION_FEE })
+      await tx.wait()
+    }
+
+    console.log(`Registered ${this.oracles.length} oracles`)
 
     // get and store existing flights
-    this.updateFlights()
+    await this.updateFlights()
   }
 
   submitResponses = async (
@@ -106,7 +106,7 @@ class Server {
     timestamp: number
   ) => {
     await Promise.all(
-      this.oracles.map(async (oracle: number) => {
+      this.oracles.map(async (oracle) => {
         const statusCode = this.getStatusCode()
         // get indexes
         const oracleIndexes: number[] = await this.appContract
@@ -133,8 +133,9 @@ class Server {
     // Clean array
     this.flights = []
 
-    const indexFlightKeys: number = await this.dataContract.indexFlightKeys()
-    for (let i = 0; i < indexFlightKeys + 1; i++) {
+    const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
+
+    for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
       const key: string = await this.dataContract.flightKeys(i)
       const flight = await this.dataContract.flights(key)
 
