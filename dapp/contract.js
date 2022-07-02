@@ -1,6 +1,6 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json'
 import FlightSuretyData from '../../build/contracts/FlightSuretyData.json'
-import Config from './config.json'
+import Config from '../config.json'
 
 export default class Contract {
   constructor(network, callback) {

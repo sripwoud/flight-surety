@@ -6,7 +6,7 @@ import middlewares, { notFoundErrorHandler } from './middlewares'
 
 const app = express()
 
-import config from '../../config.json'
+import config from '../config.json'
 import Server from './Server'
 import { dataContract, appContract } from '../eth'
 
