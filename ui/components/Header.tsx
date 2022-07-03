@@ -2,9 +2,15 @@ import React, { FC } from 'react'
 import { Dropdown, Icon, Menu } from 'semantic-ui-react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { useEthers } from '@usedapp/core'
+
+import SignIn from './SignIn'
+import { formatEthAddress } from '../utils'
 
 const Header: FC = () => {
+  const { account } = useEthers()
   const title = useRouter().route.slice(1).toUpperCase()
+
   return (
     <Menu attached="top">
       <Dropdown item icon="bars" simple>
@@ -30,16 +36,25 @@ const Header: FC = () => {
           </Link>
         </Dropdown.Menu>
       </Dropdown>
-
       {title && (
         <Menu.Menu position="left">
           <Menu.Item name={title}></Menu.Item>
         </Menu.Menu>
       )}
+
+      {account && (
+        <Menu.Menu>
+          <Menu.Item>Connected with {formatEthAddress(account)}</Menu.Item>
+        </Menu.Menu>
+      )}
+
       <Menu.Menu position="right">
         <Link href="/">
           <Menu.Item name="Flight Surety"></Menu.Item>
         </Link>
+        <Menu.Item>
+          <SignIn />
+        </Menu.Item>
       </Menu.Menu>
     </Menu>
   )

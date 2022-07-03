@@ -11,7 +11,7 @@
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
     "deploy": "node scripts/deploy",
     "start:server": "ts-node-dev --poll -T server/index.ts",
-    "start:ui": "node_modules/.bin/react-scripts start"
+    "start:ui": "cd ui && yarn dev"
   },
   "author": "r1oga",
   "devDependencies": {
