@@ -1,5 +1,5 @@
 import Signers from '../eth/signers'
-import { BigNumber, Wallet } from 'ethers'
+import { BigNumber, Signer, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -86,15 +86,22 @@ class Server {
     const REGISTRATION_FEE = await this.appContract.REGISTRATION_FEE()
 
     // register oracles
-    for (const oracle of this.oracles) {
-      console.log(oracle.address)
+    const registerOracle = async (oracle: Signer) => {
       const tx = await this.appContract
         .connect(oracle)
         .registerOracle({ value: REGISTRATION_FEE })
-      await tx.wait()
+      await tx.wait(1)
     }
 
-    console.log(`Registered ${this.oracles.length} oracles`)
+    for (const oracle of this.oracles) {
+      // console.log(oracle.address)
+      try {
+        await registerOracle(oracle)
+      } catch (e) {
+        // swallow
+        console.log(`could not register oracle ${oracle.address}`)
+      }
+    }
 
     // get and store existing flights
     await this.updateFlights()
