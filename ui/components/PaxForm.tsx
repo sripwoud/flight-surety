@@ -1,10 +1,32 @@
-import { Button, Header, Form, Select } from 'semantic-ui-react'
+import { Button, Header, Form, Select, Radio } from 'semantic-ui-react'
+import { ChangeEvent, useState } from 'react'
+import { BigNumber, utils } from 'ethers'
 
 const flights = [
   { key: '1', text: 'ABC - TO - DATE', value: 'abc' },
   { key: '2', text: 'XYZ - TO - DATE', value: 'female' }
 ]
-const AirlineForm = () => {
+const PaxForm = () => {
+  const [flight, setFlight] = useState<string>()
+  const [withInsurance, setWithInsurance] = useState(false)
+  const [amount, setAmount] = useState<number>(0)
+
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setFlight(event.target.innerText)
+  }
+  const handleToggle = () => {
+    setWithInsurance(!withInsurance)
+  }
+  const handleClick = async () => {
+    const [flightRef, to, landing] = flight!.split('-').map((e) => e.trim())
+    // return appContract.book(flightRef, to, landing)
+  }
+  const handleAmount = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmount(+event.target.value)
+  }
+
+  const canBook = (!withInsurance && flight) || !!amount
+
   return (
     <>
       <Header>Book Flight</Header>
@@ -17,11 +39,39 @@ const AirlineForm = () => {
           placeholder="Flight"
           search
           searchInput={{ id: 'form-select-control-flight' }}
+          onChange={handleChange}
         />
-        <Button type="submit">Book</Button>
+        <Form.Group>
+          {flight && (
+            <Form.Field>
+              <Radio
+                label="Insurance"
+                toggle
+                checked={withInsurance}
+                onChange={handleToggle}
+              />
+            </Form.Field>
+          )}
+          {flight && withInsurance && (
+            <Form.Input
+              label="Amount"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+              value={amount}
+              onChange={handleAmount}
+            />
+          )}
+        </Form.Group>
+        {canBook && (
+          <Button type="submit" onClick={handleClick}>
+            Book
+          </Button>
+        )}
       </Form>
     </>
   )
 }
 
-export default AirlineForm
+export default PaxForm
