@@ -8,8 +8,8 @@ import responseRouter from './response'
 
 const router = Router()
 
-router.get('/api', apiRouter)
-router.get('flights', flightsRouter)
+router.get('/', apiRouter)
+router.get('/flights', flightsRouter)
 router.get('/flight/:ref.:dest.:landing', getFlightKey, flightRouter)
 router.get('/response/:ref.:dest.:landing', getFlightKey, responseRouter)
 
