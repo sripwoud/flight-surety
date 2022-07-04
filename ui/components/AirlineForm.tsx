@@ -92,10 +92,11 @@ const AirlineForm = () => {
           {hasFunded && !canRegisterAirline && <p>Not Registerer Yet</p>}
           {canRegisterAirline && (
             <>
-              <Form.Field>
-                <label>New Airline address</label>
-                <input placeholder="0x..." onChange={handleNewAddress} />
-              </Form.Field>
+              <Form.Input
+                label="New Airline address"
+                placeholder="0x..."
+                onChange={handleNewAddress}
+              />
               {newAirlineAddress && (
                 <Button type="submit" onClick={handleRegisterAirline}>
                   Vote for Airline to Join
