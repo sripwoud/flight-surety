@@ -2726,6 +2726,11 @@ wrappy@1:
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
+wretch@^1.7.10:
+  version "1.7.10"
+  resolved "https://registry.yarnpkg.com/wretch/-/wretch-1.7.10.tgz#eb03684515d01fe568700a1bc3c0fc58d7fa7acb"
+  integrity sha512-UgF2o63bZRsz3LoOxaxzAUdFdlIJzVYbCHHhQ+LNMSBD1FeFJn8ADaekopJclHUm6sN8Lhu0DQFGQloliS0Twg==
+
 ws@7.4.6:
   version "7.4.6"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"

@@ -38,7 +38,7 @@ const parseFlight = (flight: any): Flight => ({
   flightRef: flight.flightRef,
   price: ethers.utils.formatEther(flight.price),
   from: flight.from,
-  to: flight.from
+  to: flight.to
 })
 
 class Server {

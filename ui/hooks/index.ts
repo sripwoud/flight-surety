@@ -1,3 +1,4 @@
-export * from './is-registered-airline'
-export * from './airline-has-funded'
-export * from './can-register-airline'
+export * from './use-is-registered'
+export * from './use-has-funded'
+export * from './use-can-register'
+export * from './use-flights'

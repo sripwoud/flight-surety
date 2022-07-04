@@ -3,7 +3,7 @@ import { ChangeEvent, useState } from 'react'
 import { utils } from 'ethers'
 import { useContractFunction, useEthers } from '@usedapp/core'
 import { app } from '../contracts'
-import { useCanRegisterAirline, useHasFunded } from '../hooks'
+import { useCanRegister, useHasFunded } from '../hooks'
 
 const AirlineForm = () => {
   const [newAirlineAddress, setNewAirlineAddress] = useState('')
@@ -18,7 +18,7 @@ const AirlineForm = () => {
 
   const { account } = useEthers()
   const hasFunded = useHasFunded(account)
-  const canRegisterAirline = useCanRegisterAirline(account)
+  const canRegisterAirline = useCanRegister(account)
 
   const handleFundingAmount = (event: ChangeEvent<HTMLInputElement>) => {
     setFundingAmount(event.target.value)

@@ -1,11 +1,8 @@
 import { Button, Header, Form, Select, Radio } from 'semantic-ui-react'
 import { ChangeEvent, useState } from 'react'
 import { BigNumber, utils } from 'ethers'
+import { useFlights } from '../hooks'
 
-const flights = [
-  { key: '1', text: 'ABC - TO - DATE', value: 'abc' },
-  { key: '2', text: 'XYZ - TO - DATE', value: 'female' }
-]
 const PaxForm = () => {
   const [flight, setFlight] = useState<string>()
   const [withInsurance, setWithInsurance] = useState(false)
@@ -24,6 +21,12 @@ const PaxForm = () => {
   const handleAmount = (event: ChangeEvent<HTMLInputElement>) => {
     setAmount(+event.target.value)
   }
+
+  const flights = useFlights().map(({ flight: { flightRef, from, to } }) => ({
+    key: flightRef,
+    text: [flightRef, from, to].join('-'),
+    value: flightRef
+  }))
 
   const canBook = (!withInsurance && flight) || !!amount
 
