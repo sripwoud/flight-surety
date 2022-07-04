@@ -1,5 +1,5 @@
 import Signers from '../eth/signers'
-import { BigNumber, Signer, Wallet } from 'ethers'
+import { BigNumber, ethers, Signer, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -7,18 +7,43 @@ const watchEvent = (eventName: string, contract: any) => {
   })
 }
 
+const STATUS_CODES = {
+  0: 'unknown',
+  1: 'On time',
+  2: 'Late Due to Airline',
+  3: 'Late Due to Weather',
+  4: 'Late Due to Technical Reason',
+  5: 'Late Due to Other Reason'
+}
+
+type Flight = {
+  isRegistered: boolean
+  statusCode: boolean
+  takeOff: Date
+  landing: Date
+  airline: string
+  flightRef: string
+  price: string
+  from: string
+  to: string
+}
+
+const parseFlight = (flight: any): Flight => ({
+  isRegistered: flight.isRegistered,
+  // @ts-ignore
+  statusCode: STATUS_CODES[flight.statusCode],
+  takeOff: new Date(flight.takeOff),
+  landing: new Date(flight.landing),
+  airline: flight.airline,
+  flightRef: flight.flightRef,
+  price: ethers.utils.formatEther(flight.price),
+  from: flight.from,
+  to: flight.from
+})
+
 class Server {
   oracles: Wallet[]
-  flights: { index: number; key: string; flight: string }[] = []
-  // states: Record<number, string> = {
-  //   0: 'unknown',
-  //   10: 'on time',
-  //   20: 'late due to airline',
-  //   30: 'late due to weather',
-  //   40: 'late due to technical reason',
-  //   50: 'late due to other reason'
-  // }
-
+  flights: { index: number; key: string; flight: Flight }[] = []
   dataContract
   appContract
 
@@ -36,10 +61,10 @@ class Server {
     this.oracles = Signers(numOracles)
   }
 
-  // random number out of [10, 20, 30, 40, 50]
-  getStatusCode = () => (Math.floor(Math.random() * 5) + 1) * 10
+  // random number out of [1, 2, 3, 4, 5]
+  getStatusCode = () => Math.floor(Math.random() * 5) + 1
 
-  listenToInfoEvents = () => {
+  watchAndLogEvents = () => {
     ;['AirlineRegistered', 'Funded', 'Paid', 'Credited'].forEach((event) => {
       watchEvent(event, this.dataContract)
     })
@@ -54,57 +79,40 @@ class Server {
     })
   }
 
-  storeFlight = async () => {
-    const indexFlightKeys = await this.dataContract.indexFlightKeys()
-    const key = await this.dataContract.flightKeys(indexFlightKeys)
-    const flight = await this.dataContract.flights(key)
-
-    for (let j = 0; j < 9; j++) {
-      delete flight[j]
-    }
-
-    this.flights.push({
-      index: indexFlightKeys,
-      key: key,
-      flight: flight
-    })
-  }
-
-  init = async () => {
-    this.listenToInfoEvents()
-
+  watchAndReactToEvents = () => {
     this.appContract.on('FlightRegistered', (data: any[]) => {
       console.log('FlightRegistered', data)
       this.storeFlight()
     })
 
-    this.appContract.on('OracleRequest', (data: any[]) => {
-      console.log('FlightRegistered', data)
-      // this.submitResponses(flight, destination, timestamp)
+    this.appContract.on('OracleRequest', (data: any) => {
+      console.log('OracleRequest', data)
+      // this.submitResponses(data.flight, data.destination, data.timestamp)
     })
+  }
 
-    const REGISTRATION_FEE = await this.appContract.REGISTRATION_FEE()
+  storeFlight = async (pos?: number) => {
+    const indexFlightKeys = pos || (await this.dataContract.indexFlightKeys())
+    const key = await this.dataContract.flightKeys(indexFlightKeys)
+    const flight = await this.dataContract.flights(key)
 
-    // register oracles
-    const registerOracle = async (oracle: Signer) => {
-      const tx = await this.appContract
-        .connect(oracle)
-        .registerOracle({ value: REGISTRATION_FEE })
-      await tx.wait(1)
+    this.flights.push({
+      index: indexFlightKeys,
+      key: key,
+      // @ts-ignore
+      flight: parseFlight(flight)
+    })
+  }
+
+  updateFlights = async () => {
+    this.flights = []
+
+    const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
+
+    for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
+      await this.storeFlight(i)
     }
-
-    for (const oracle of this.oracles) {
-      // console.log(oracle.address)
-      try {
-        await registerOracle(oracle)
-      } catch (e) {
-        // swallow
-        console.log(`could not register oracle ${oracle.address}`)
-      }
-    }
-
-    // get and store existing flights
-    await this.updateFlights()
+    console.log({ flights: this.flights.map((f) => f.flight) })
   }
 
   submitResponses = async (
@@ -136,27 +144,49 @@ class Server {
     )
   }
 
-  updateFlights = async () => {
-    // Clean array
-    this.flights = []
+  registerOracle = async (oracle: Signer) => {
+    const REGISTRATION_FEE = await this.appContract.REGISTRATION_FEE()
+    return this.appContract
+      .connect(oracle)
+      .registerOracle({ value: REGISTRATION_FEE })
+  }
 
-    const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
-
-    for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
-      const key: string = await this.dataContract.flightKeys(i)
-      const flight = await this.dataContract.flights(key)
-
-      for (let j = 0; j < 9; j++) {
-        delete flight[j]
+  registerOracles = async () => {
+    for (const oracle of this.oracles) {
+      // console.log(oracle.address)
+      try {
+        await this.registerOracle(oracle)
+      } catch (e) {
+        // swallow
+        console.log(`could not register oracle ${oracle.address}`)
       }
-
-      // as unique key, an index is added and will be displayed in the front end form (instead of displaying the hash key)
-      this.flights.push({
-        index: i,
-        key: key,
-        flight: flight
-      })
     }
+  }
+
+  maybeRegisterOneFlight = async () => {
+    // register one flight on chain if none yet (dev only)
+    const indexFlightKeys = await this.dataContract.indexFlightKeys()
+    if (indexFlightKeys.isZero()) {
+      await this.appContract
+        .connect(this.oracles[0])
+        .registerFlight(
+          new Date().getTime(),
+          new Date().getTime() + 24 * 60 * 60 * 1000,
+          'BER1122',
+          ethers.utils.parseEther('1'),
+          'Berlin',
+          'Paris'
+        )
+      console.log('Airline 0 registered 1 flight')
+    }
+  }
+
+  init = async () => {
+    this.watchAndLogEvents()
+    this.watchAndReactToEvents()
+    await this.registerOracles()
+    await this.maybeRegisterOneFlight()
+    await this.updateFlights()
   }
 }
 
