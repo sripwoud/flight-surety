@@ -61,6 +61,9 @@ async function main() {
   const tx = await data.authorizeCaller(app.address)
   await tx.wait()
   console.log('Authorized App Contract')
+
+  await app.fund({ value: ethers.utils.parseEther('10') })
+  console.log(`Airline 0 ${signer.address} has funded`)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
