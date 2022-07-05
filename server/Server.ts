@@ -28,18 +28,20 @@ type Flight = {
   to: string
 }
 
-const parseFlight = (flight: any): Flight => ({
-  isRegistered: flight.isRegistered,
-  // @ts-ignore
-  statusCode: STATUS_CODES[flight.statusCode],
-  takeOff: new Date(flight.takeOff),
-  landing: new Date(flight.landing),
-  airline: flight.airline,
-  flightRef: flight.flightRef,
-  price: ethers.utils.formatEther(flight.price),
-  from: flight.from,
-  to: flight.to
-})
+const parseFlight = (flight: any): Flight => {
+  return {
+    isRegistered: flight.isRegistered,
+    // @ts-ignore
+    statusCode: STATUS_CODES[flight.statusCode],
+    takeOff: new Date(flight.takeOff.toNumber()),
+    landing: new Date(flight.landing.toNumber()),
+    airline: flight.airline,
+    flightRef: flight.flightRef,
+    price: flight.price,
+    from: flight.from,
+    to: flight.to
+  }
+}
 
 class Server {
   oracles: Wallet[]
@@ -112,7 +114,6 @@ class Server {
     for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
       await this.storeFlight(i)
     }
-    console.log({ flights: this.flights.map((f) => f.flight) })
   }
 
   submitResponses = async (
@@ -163,21 +164,33 @@ class Server {
     }
   }
 
-  maybeRegisterOneFlight = async () => {
+  maybeRegisterTwoFlights = async () => {
     // register one flight on chain if none yet (dev only)
-    const indexFlightKeys = await this.dataContract.indexFlightKeys()
-    if (indexFlightKeys.isZero()) {
-      await this.appContract
+    const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
+    if (indexFlightKeys.lt(2)) {
+      const tx = await this.appContract
         .connect(this.oracles[0])
         .registerFlight(
           new Date().getTime(),
           new Date().getTime() + 24 * 60 * 60 * 1000,
           'BER1122',
+          ethers.utils.parseEther('1.2'),
+          'Paris',
+          'Berlin'
+        )
+      await tx.wait(1)
+
+      await this.appContract
+        .connect(this.oracles[0])
+        .registerFlight(
+          new Date().getTime(),
+          new Date().getTime() + 24 * 60 * 60 * 1000,
+          'BER2211',
           ethers.utils.parseEther('1'),
           'Berlin',
           'Paris'
         )
-      console.log('Airline 0 registered 1 flight')
+      console.log('Airline 0 registered 2 flights')
     }
   }
 
@@ -185,7 +198,7 @@ class Server {
     this.watchAndLogEvents()
     this.watchAndReactToEvents()
     await this.registerOracles()
-    await this.maybeRegisterOneFlight()
+    await this.maybeRegisterTwoFlights()
     await this.updateFlights()
   }
 }
