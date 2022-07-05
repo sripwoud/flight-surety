@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Request, Response, Router } from 'express'
 
 import getFlightKey from '../middlewares/get-flight-key'
 import apiRouter from './api'
@@ -10,7 +10,10 @@ const router = Router()
 
 router.get('/', apiRouter)
 router.get('/flights', flightsRouter)
-router.get('/flight/:ref.:dest.:landing', getFlightKey, flightRouter)
-router.get('/response/:ref.:dest.:landing', getFlightKey, responseRouter)
+router.post('/flight-key', getFlightKey, (req: Request, res: Response) => {
+  res.send(req.locals.key)
+})
+router.post('/flight', getFlightKey, flightRouter)
+router.post('/response', getFlightKey, responseRouter)
 
 export default router

@@ -1,12 +1,13 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express, {NextFunction, Request, Response} from 'express'
 import 'express-async-errors'
 
 import router from './routes'
-import middlewares, { notFoundErrorHandler } from './middlewares'
+import middlewares, {notFoundErrorHandler} from './middlewares'
 import config from '../config.json'
 import Server from './Server'
-import { dataContract, appContract } from '../eth'
+import {dataContract, appContract} from '../eth'
 
+const port = config.serverPort || 3001
 const app = express()
 
 const start = async () => {
@@ -29,11 +30,9 @@ const start = async () => {
 
   app.set('json spaces', 2)
   app.use([contextHandler, ...middlewares, router])
-  app.listen(config.serverPort || 3001, () =>
-    console.log(`Oracles server 👂 on port 3000`)
-  )
-
   app.all('*', notFoundErrorHandler)
+
+  app.listen(port, () => console.log(`Oracles server 👂 on port ${port}`))
 }
 
 try {
