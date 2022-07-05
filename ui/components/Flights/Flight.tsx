@@ -41,6 +41,11 @@ const Flight: FC<{
     })
   }
 
+  const { send: withdraw } = useContractFunction(app, 'withdraw')
+  const handleClaimPress = () => {
+    withdraw()
+  }
+
   const { send: fetchFlightStatus } = useContractFunction(
     app,
     'fetchFlightStatus'
@@ -65,7 +70,7 @@ const Flight: FC<{
         <>
           <Table.Cell>{statusCode}</Table.Cell>
           {!['On time', 'unknown'].includes(statusCode) && (
-            <Button>Claim</Button>
+            <Button onClick={handleClaimPress}>Claim</Button>
           )}
         </>
       ) : (

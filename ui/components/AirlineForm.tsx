@@ -67,6 +67,11 @@ const AirlineForm = () => {
     )
   }
 
+  const { send: withdraw } = useContractFunction(app, 'withdraw')
+  const handleWithdrawPress = () => {
+    withdraw()
+  }
+
   return (
     <>
       <Segment>
@@ -169,7 +174,7 @@ const AirlineForm = () => {
       <Segment>
         <Header>Tickets</Header>
         <Form>
-          <Button type="submit">
+          <Button type="submit" onClick={handleWithdrawPress}>
             <Icon name="ethereum"></Icon>
             Withdraw Earnings
           </Button>
