@@ -8,4 +8,5 @@ export type FlightProps = {
   price: BigNumber
   takeOff: Date
   landing: Date
+  paxOnFlight: boolean
 }

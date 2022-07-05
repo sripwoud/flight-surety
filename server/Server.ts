@@ -1,5 +1,5 @@
 import Signers from '../eth/signers'
-import { BigNumber, ethers, Signer, Wallet } from 'ethers'
+import { BigNumber, ethers, Signer, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -17,6 +17,8 @@ const STATUS_CODES = {
 }
 
 type Flight = {
+  index: number
+  key: string
   isRegistered: boolean
   statusCode: boolean
   takeOff: Date
@@ -28,24 +30,9 @@ type Flight = {
   to: string
 }
 
-const parseFlight = (flight: any): Flight => {
-  return {
-    isRegistered: flight.isRegistered,
-    // @ts-ignore
-    statusCode: STATUS_CODES[flight.statusCode],
-    takeOff: new Date(flight.takeOff.toNumber()),
-    landing: new Date(flight.landing.toNumber()),
-    airline: flight.airline,
-    flightRef: flight.flightRef,
-    price: flight.price,
-    from: flight.from,
-    to: flight.to
-  }
-}
-
 class Server {
   oracles: Wallet[]
-  flights: { index: number; key: string; flight: Flight }[] = []
+  flights: Flight[] = []
   dataContract
   appContract
 
@@ -94,15 +81,23 @@ class Server {
   }
 
   storeFlight = async (pos?: number) => {
-    const indexFlightKeys = pos || (await this.dataContract.indexFlightKeys())
-    const key = await this.dataContract.flightKeys(indexFlightKeys)
+    const index = pos || (await this.dataContract.indexFlightKeys()).toNumber()
+    const key = await this.dataContract.flightKeys(index)
     const flight = await this.dataContract.flights(key)
 
     this.flights.push({
-      index: indexFlightKeys,
+      index,
       key: key,
+      isRegistered: flight.isRegistered,
       // @ts-ignore
-      flight: parseFlight(flight)
+      statusCode: STATUS_CODES[flight.statusCode],
+      takeOff: new Date(flight.takeOff.toNumber()),
+      landing: new Date(flight.landing.toNumber()),
+      airline: flight.airline,
+      flightRef: flight.flightRef,
+      price: utils.formatEther(flight.price),
+      from: flight.from,
+      to: flight.to
     })
   }
 

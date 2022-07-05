@@ -1,12 +1,13 @@
-import { Header } from 'semantic-ui-react'
+import { Divider } from 'semantic-ui-react'
 
 import FLightsList from './Flights/FlightList'
 
 const PaxForm = () => {
   return (
     <>
-      <Header>Book Flight</Header>
-      <FLightsList />
+      <FLightsList title="Book FLight" />
+      <Divider />
+      <FLightsList booked title="Booked Fights" />
     </>
   )
 }

@@ -3,6 +3,8 @@ import React, { ChangeEvent, FC, useState } from 'react'
 import { Button, Checkbox, Input, Table } from 'semantic-ui-react'
 
 import { FlightProps } from '../../types'
+import { app } from '../../contracts'
+import { useContractFunction } from '@usedapp/core'
 
 const formatDate = (date: Date) => {
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
@@ -12,10 +14,12 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
   key,
   flightProps: flightProps
 }) => {
-  const { flightRef, from, to, price, takeOff, landing } = flightProps
+  const { flightRef, from, to, price, takeOff, landing, paxOnFlight } =
+    flightProps
 
+  // console.log(price)
   const [withInsurance, setWithInsurance] = useState(false)
-  const [amount, setAmount] = useState<number>(0)
+  const [amount, setAmount] = useState<number>(0.00000001)
 
   const handleToggleInsurance = () => {
     setWithInsurance(!withInsurance)
@@ -24,13 +28,13 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
     setAmount(+event.target.value)
   }
 
-  // const { send: book } = useContractFunction(
-  //   { contract: app, method: 'book', args: [] },
-  //   { value: flight.price.add(utils.parseEther(amount.toString())) }
-  // )
-  const handleBookPress = async () => {
-    // const [flightRef, to, landing] = flight!.split('-').map((e) => e.trim())
-    // return appContract.book(flightRef, to, landing)
+  const { send: book } = useContractFunction(app, 'book')
+  const handleBookPress = () => {
+    const insuranceAmount = utils.parseEther(amount.toString())
+
+    book(flightRef, to, landing.getTime(), insuranceAmount, {
+      value: price.add(insuranceAmount)
+    })
   }
 
   return (
@@ -41,28 +45,32 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
       <Table.Cell>{formatDate(takeOff)}</Table.Cell>
       <Table.Cell>{formatDate(landing)}</Table.Cell>
       <Table.Cell>{utils.formatEther(price)}</Table.Cell>
-      <Table.Cell collapsing>
-        <Checkbox
-          slider
-          onChange={handleToggleInsurance}
-          checked={withInsurance}
-          style={{ marginRight: '10px' }}
-        />
-        {withInsurance && (
-          <Input
-            icon="ethereum"
-            type="number"
-            min="0"
-            max={1}
-            step={0.01}
-            value={amount}
-            onChange={handleAmount}
-          />
-        )}
-      </Table.Cell>
-      <Table.Cell collapsing>
-        <Button onClick={handleBookPress}>Book</Button>
-      </Table.Cell>
+      {!paxOnFlight && (
+        <>
+          <Table.Cell collapsing>
+            <Checkbox
+              slider
+              onChange={handleToggleInsurance}
+              checked={withInsurance}
+              style={{ marginRight: '10px' }}
+            />
+            {withInsurance && (
+              <Input
+                icon="ethereum"
+                type="number"
+                min="0"
+                max={1}
+                step={0.01}
+                value={amount}
+                onChange={handleAmount}
+              />
+            )}
+          </Table.Cell>
+          <Table.Cell collapsing>
+            <Button onClick={handleBookPress}>Book</Button>
+          </Table.Cell>
+        </>
+      )}
     </Table.Row>
   )
 }
