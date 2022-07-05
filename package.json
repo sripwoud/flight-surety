@@ -8,11 +8,10 @@
   "repository": "https://github.com/techbubble/flightsurety",
   "license": "MIT",
   "scripts": {
-    "test": "truffle test ./test/flightSurety.js",
-    "server": "rm -rf ./build/server && webpack --config webpack.config.server.js",
-    "start": "ts-node-dev --poll -T src/server/index.ts",
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
-    "deploy": "node scripts/deploy"
+    "deploy": "node scripts/deploy",
+    "start:server": "ts-node-dev --poll -T server/index.ts",
+    "start:ui": "cd ui && yarn dev"
   },
   "author": "r1oga",
   "devDependencies": {

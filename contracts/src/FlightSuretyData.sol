@@ -165,44 +165,31 @@ contract FlightSuretyData {
     function getFlightKey
     (
         string flightRef,
-        string destination,
-        uint256 timestamp
+        string from,
+        string to,
+        uint256 takeOff
     )
     public
     pure
     returns (bytes32)
     {
-        return keccak256(abi.encodePacked(flightRef, destination, timestamp));
+        return keccak256(abi.encodePacked(flightRef, from, to, takeOff));
     }
 
-    function paxOnFlight
-    (
-        string flightRef,
-        string destination,
-        uint256 timestamp,
-        address passenger
-    )
+    function paxOnFlight(bytes32 key, address passenger)
     public
     view
     returns (bool onFlight)
     {
-        bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
-        onFlight = flights[flightKey].bookings[passenger];
+        onFlight = flights[key].bookings[passenger];
     }
 
-    function subscribedInsurance
-    (
-        string flightRef,
-        string destination,
-        uint256 timestamp,
-        address passenger
-    )
+    function subscribedInsurance(bytes32 key, address passenger)
     public
     view
     returns (uint amount)
     {
-        bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
-        amount = flights[flightKey].insurances[passenger];
+        amount = flights[key].insurances[passenger];
     }
 
     function getFlightPrice(bytes32 flightKey)
@@ -261,7 +248,7 @@ contract FlightSuretyData {
             _from,
             _to
         );
-        bytes32 flightKey = keccak256(abi.encodePacked(_flight, _to, _landing));
+        bytes32 flightKey = getFlightKey(_flight, _from, _to, _takeOff);
         flights[flightKey] = flight;
         indexFlightKeys = flightKeys.push(flightKey).sub(1);
         // event emission in app contract
