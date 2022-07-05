@@ -1,11 +1,5 @@
-import { NextFunction, Request, Response } from 'express'
+import { Request, Response } from 'express'
 
-// @ts-ignore
-export default async (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  throw err
+export default (req: Request, res: Response) => {
+  res.status(404).send(`${req.method} ${req.path} not handled`)
 }
