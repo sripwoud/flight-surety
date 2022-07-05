@@ -13,7 +13,7 @@ router.get('/flights', flightsRouter)
 router.post('/flight-key', getFlightKey, (req: Request, res: Response) => {
   res.send(req.locals.key)
 })
-router.post('/flight', getFlightKey, flightRouter)
+router.get('/flight/:key', flightRouter)
 router.post('/response', getFlightKey, responseRouter)
 
 export default router

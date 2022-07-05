@@ -8,7 +8,7 @@ const watchEvent = (eventName: string, contract: any) => {
 }
 
 const STATUS_CODES = {
-  0: 'unknown',
+  0: 'Unknown',
   1: 'On time',
   2: 'Late Due to Airline',
   3: 'Late Due to Weather',
@@ -187,42 +187,37 @@ class Server {
     }
   }
 
-  maybeRegisterTwoFlights = async () => {
-    // register one flight on chain if none yet (dev only)
-    const index: BigNumber = await this.dataContract.indexFlightKeys()
+  registerTwoFlights = async () => {
+    const tx = await this.appContract
+      .connect(this.oracles[0])
+      .registerFlight(
+        new Date().getTime(),
+        new Date().getTime() + 24 * 60 * 60 * 1000,
+        'BER1122',
+        ethers.utils.parseEther('1.2'),
+        'Paris',
+        'Berlin'
+      )
+    await tx.wait(1)
 
-    if (index.lt(2)) {
-      const tx = await this.appContract
-        .connect(this.oracles[0])
-        .registerFlight(
-          new Date().getTime(),
-          new Date().getTime() + 24 * 60 * 60 * 1000,
-          'BER1122',
-          ethers.utils.parseEther('1.2'),
-          'Paris',
-          'Berlin'
-        )
-      await tx.wait(1)
-
-      await this.appContract
-        .connect(this.oracles[0])
-        .registerFlight(
-          new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
-          new Date().getTime() + 3 * 24 * 60 * 60 * 1000,
-          'BER2211',
-          ethers.utils.parseEther('1'),
-          'Berlin',
-          'Paris'
-        )
-      console.log('Airline 0 registered 2 flights')
-    }
+    await this.appContract
+      .connect(this.oracles[0])
+      .registerFlight(
+        new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
+        new Date().getTime() + 3 * 24 * 60 * 60 * 1000,
+        'BER2211',
+        ethers.utils.parseEther('1'),
+        'Berlin',
+        'Paris'
+      )
+    console.log('Airline 0 registered 2 flights')
   }
 
   init = async () => {
     this.watchAndLogEvents()
     this.watchAndReactToEvents()
     await this.registerOracles()
-    await this.maybeRegisterTwoFlights()
+    await this.registerTwoFlights()
     // await this.updateFlights()
   }
 }
