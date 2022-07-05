@@ -19,7 +19,7 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
 
   // console.log(price)
   const [withInsurance, setWithInsurance] = useState(false)
-  const [amount, setAmount] = useState<number>(0.00000001)
+  const [amount, setAmount] = useState<number>(0.01)
 
   const handleToggleInsurance = () => {
     setWithInsurance(!withInsurance)
@@ -58,7 +58,7 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
               <Input
                 icon="ethereum"
                 type="number"
-                min="0"
+                min="0.001"
                 max={1}
                 step={0.01}
                 value={amount}
