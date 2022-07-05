@@ -84,7 +84,7 @@ contract FlightSuretyApp {
 
     /////////////////////////////// EVENTS
 
-    event FlightRegistered(string flightRef, string to, uint landing);
+    event FlightRegistered(string flightRef, string from, string to, uint takeOff);
     event WithdrawRequest(address recipient);
     event FlightProcessed(string flightRef, string destination, uint timestamp, uint8 statusCode);
 
@@ -236,7 +236,7 @@ contract FlightSuretyApp {
             to,
             msg.sender
         );
-        emit FlightRegistered(flightRef, to, landing);
+        emit FlightRegistered(flightRef, from, to, takeOff);
     }
 
     function book

@@ -1,5 +1,5 @@
 import Signers from '../eth/signers'
-import {BigNumber, ethers, Signer, utils, Wallet} from 'ethers'
+import { BigNumber, ethers, Signer, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -17,7 +17,6 @@ const STATUS_CODES = {
 }
 
 type Flight = {
-  index: number
   key: string
   isRegistered: boolean
   statusCode: boolean
@@ -37,10 +36,10 @@ class Server {
   appContract
 
   constructor({
-                dataContract,
-                appContract,
-                numOracles
-              }: {
+    dataContract,
+    appContract,
+    numOracles
+  }: {
     dataContract: any
     appContract: any
     numOracles: number
@@ -69,21 +68,40 @@ class Server {
   }
 
   watchAndReactToEvents = () => {
-    this.appContract.on('FlightRegistered', (data: any[]) => {
-      console.log('FlightRegistered', data)
-      this.storeFlight()
+    this.appContract.on('FlightRegistered', async (...data: any) => {
+      console.log('FlightRegistered', data.slice(0, 4))
+      const key = utils.solidityKeccak256(
+        ['string', 'string', 'string', 'uint'],
+        [...data.slice(0, 4)]
+      )
+
+      const flight = await this.dataContract.flights(key)
+
+      this.flights.push({
+        key: key,
+        isRegistered: flight.isRegistered,
+        // @ts-ignore
+        statusCode: STATUS_CODES[flight.statusCode],
+        takeOff: new Date(flight.takeOff.toNumber()),
+        landing: new Date(flight.landing.toNumber()),
+        airline: flight.airline,
+        flightRef: flight.flightRef,
+        price: utils.formatEther(flight.price),
+        from: flight.from,
+        to: flight.to
+      })
     })
 
     this.appContract.on(
       'OracleRequest',
-      (
+      async (
         index: number,
         flight: string,
         destination: string,
         timestamp: BigNumber
       ) => {
         console.log('OracleRequest', { flight, destination, timestamp })
-        this.submitResponses(flight, destination, timestamp.toNumber())
+        await this.submitResponses(flight, destination, timestamp.toNumber())
       }
     )
   }
@@ -94,7 +112,6 @@ class Server {
     const flight = await this.dataContract.flights(key)
 
     this.flights.push({
-      index,
       key: key,
       isRegistered: flight.isRegistered,
       // @ts-ignore
@@ -135,7 +152,6 @@ class Server {
 
       for (const index of oracleIndexes) {
         try {
-
           await this.appContract
             .connect(oracle)
             .submitOracleResponse(
@@ -173,8 +189,9 @@ class Server {
 
   maybeRegisterTwoFlights = async () => {
     // register one flight on chain if none yet (dev only)
-    const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
-    if (indexFlightKeys.lt(2)) {
+    const index: BigNumber = await this.dataContract.indexFlightKeys()
+
+    if (index.lt(2)) {
       const tx = await this.appContract
         .connect(this.oracles[0])
         .registerFlight(
@@ -190,8 +207,8 @@ class Server {
       await this.appContract
         .connect(this.oracles[0])
         .registerFlight(
-          new Date().getTime(),
-          new Date().getTime() + 24 * 60 * 60 * 1000,
+          new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
+          new Date().getTime() + 3 * 24 * 60 * 60 * 1000,
           'BER2211',
           ethers.utils.parseEther('1'),
           'Berlin',
@@ -206,7 +223,7 @@ class Server {
     this.watchAndReactToEvents()
     await this.registerOracles()
     await this.maybeRegisterTwoFlights()
-    await this.updateFlights()
+    // await this.updateFlights()
   }
 }
 
