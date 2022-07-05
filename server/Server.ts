@@ -31,7 +31,7 @@ type Flight = {
 
 class Server {
   oracles: Wallet[]
-  flights: Flight[] = []
+  flights: Record<string, Flight> = {}
   dataContract
   appContract
 
@@ -59,7 +59,6 @@ class Server {
     ;[
       'OracleRegistered',
       'OracleReport',
-      'FlightStatusInfo',
       'FlightProcessed',
       'WithdrawRequest'
     ].forEach((event) => {
@@ -77,7 +76,7 @@ class Server {
 
       const flight = await this.dataContract.flights(key)
 
-      this.flights.push({
+      this.flights[key] = {
         key: key,
         isRegistered: flight.isRegistered,
         // @ts-ignore
@@ -89,7 +88,7 @@ class Server {
         price: utils.formatEther(flight.price),
         from: flight.from,
         to: flight.to
-      })
+      }
     })
 
     this.appContract.on(
@@ -104,35 +103,35 @@ class Server {
         await this.submitResponses(flight, destination, timestamp.toNumber())
       }
     )
-  }
 
-  storeFlight = async (pos?: number) => {
-    const index = pos || (await this.dataContract.indexFlightKeys()).toNumber()
-    const key = await this.dataContract.flightKeys(index)
-    const flight = await this.dataContract.flights(key)
-
-    this.flights.push({
-      key: key,
-      isRegistered: flight.isRegistered,
-      // @ts-ignore
-      statusCode: STATUS_CODES[flight.statusCode],
-      takeOff: new Date(flight.takeOff.toNumber()),
-      landing: new Date(flight.landing.toNumber()),
-      airline: flight.airline,
-      flightRef: flight.flightRef,
-      price: utils.formatEther(flight.price),
-      from: flight.from,
-      to: flight.to
+    // @ts-ignore
+    this.appContract.on('FlightStatusInfo', (key, statusCode) => {
+      console.log('FlightStatusInfo', { key, statusCode })
+      this.flights[key].statusCode = statusCode
     })
   }
 
   updateFlights = async () => {
-    this.flights = []
-
     const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
+    console.log(indexFlightKeys)
 
     for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
-      await this.storeFlight(i)
+      const key = await this.dataContract.flightKeys(i)
+      const flight = await this.dataContract.flights(key)
+
+      this.flights[key] = {
+        key: key,
+        isRegistered: flight.isRegistered,
+        // @ts-ignore
+        statusCode: STATUS_CODES[flight.statusCode],
+        takeOff: new Date(flight.takeOff.toNumber()),
+        landing: new Date(flight.landing.toNumber()),
+        airline: flight.airline,
+        flightRef: flight.flightRef,
+        price: utils.formatEther(flight.price),
+        from: flight.from,
+        to: flight.to
+      }
     }
   }
 
@@ -218,7 +217,7 @@ class Server {
     this.watchAndReactToEvents()
     await this.registerOracles()
     await this.registerTwoFlights()
-    // await this.updateFlights()
+    await this.updateFlights()
   }
 }
 
