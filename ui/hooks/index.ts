@@ -1,5 +1,6 @@
 export * from './use-is-registered'
 export * from './use-has-funded'
 export * from './use-can-register'
+export * from './use-flight-key'
 export * from './use-flights'
 export * from './use-pax-on-flight'

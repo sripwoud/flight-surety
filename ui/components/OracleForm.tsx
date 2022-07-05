@@ -1,9 +1,9 @@
-import FLightsList from './Flights/FlightListForOracle'
+import FlightsList from './Flights/FlightListForOracle'
 
 const PaxForm = () => {
   return (
     <>
-      <FLightsList title="Fetch Flight Status" />
+      <FlightsList title="Fetch Flight Status" />
     </>
   )
 }

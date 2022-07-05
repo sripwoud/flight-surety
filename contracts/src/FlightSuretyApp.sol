@@ -11,7 +11,6 @@ import "oz/SafeMath.sol";
 
 // FlightSuretyData Interface contract
 contract FlightSuretyData {
-
     function registerAirline(address airlineAddress, address originAddress) external;
 
     function fund(address originAddress) external payable;
@@ -44,7 +43,7 @@ contract FlightSuretyData {
 
     function firstAirline() external view returns (address);
 
-
+    function paxOnFlight(bytes32 key, address passenger) public view returns (bool onFlight);
 }
 
 

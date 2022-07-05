@@ -9,10 +9,10 @@ import { formatDate } from '../../utils'
 
 const Flight: FC<{
   flightProps: FlightProps
-  key: number
   forOracle?: boolean
-}> = ({ key, flightProps: flightProps, forOracle }) => {
+}> = ({ flightProps: flightProps, forOracle }) => {
   const {
+    key,
     flightRef,
     from,
     to,
@@ -22,7 +22,7 @@ const Flight: FC<{
     paxOnFlight,
     statusCode
   } = flightProps
-
+  console.log({ key })
   const [withInsurance, setWithInsurance] = useState(false)
   const [amount, setAmount] = useState<number>(0.01)
 
@@ -36,8 +36,8 @@ const Flight: FC<{
   const { send: book } = useContractFunction(app, 'book')
   const handleBookPress = () => {
     const insuranceAmount = utils.parseEther(amount.toString())
-
-    book(flightRef, to, landing.getTime(), insuranceAmount, {
+    console.log(key)
+    book(key, insuranceAmount, {
       value: price.add(insuranceAmount)
     })
   }
@@ -47,7 +47,7 @@ const Flight: FC<{
     'fetchFlightStatus'
   )
   const handleAskPress = () => {
-    fetchFlightStatus(flightRef, to, landing.getTime())
+    fetchFlightStatus(key)
   }
 
   return (

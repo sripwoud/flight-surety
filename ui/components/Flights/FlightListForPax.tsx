@@ -13,9 +13,7 @@ const FLightsList: FC<{
   const { account } = useEthers()
   const Flights = useFlights(account)
     .filter(({ paxOnFlight }) => paxOnFlight === booked)
-    .map((flightProps, i) => {
-      return <Flight key={i} flightProps={flightProps} />
-    })
+    .map((flightProps, i) => <Flight key={i} flightProps={flightProps} />)
 
   const _headers = ['From', 'To', 'Take Off', 'Landing', 'ETH']
   const headers = booked

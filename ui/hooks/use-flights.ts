@@ -13,25 +13,24 @@ const useFlights = (paxAddress?: string) => {
 
   useEffect(() => {
     const fetchFlights = async () => {
-      let flights = await wretch('http://localhost:3001/flights').get().json()
+      let flights = await wretch('http://localhost:3001/flights')
+        .get()
+        .json((flights) => Object.values(flights))
 
       if (paxAddress && library) {
         flights = await Promise.all(
-          flights.map(async ({ flightRef, to, landing, ...rest }) => {
+          flights.map(async ({ flightRef, to, landing, key, ...rest }) => {
             let paxOnFlight = false
 
             try {
               paxOnFlight = await data
                 .connect(library)
-                .paxOnFlight(
-                  flightRef,
-                  to,
-                  new Date(landing).getTime(),
-                  paxAddress
-                )
-            } catch (e) {}
+                .paxOnFlight(key, paxAddress)
+            } catch (e) {
+              console.log(e)
+            }
 
-            return { flightRef, to, landing, paxOnFlight, ...rest }
+            return { flightRef, to, landing, paxOnFlight, key, ...rest }
           })
         )
       }

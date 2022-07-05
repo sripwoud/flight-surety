@@ -5,14 +5,16 @@ import Flight from './Flight'
 
 import { useFlights } from '../../hooks'
 
-const FLightsList: FC<{
+const FlightsList: FC<{
   booked?: boolean
   title: string
 }> = ({ title }) => {
   const Flights = useFlights()
-    .filter(({ statusCode }) => statusCode === 'unknown')
-    .map((flightProps, i) => {
-      return <Flight key={i} flightProps={flightProps} forOracle />
+    .filter(({ statusCode }) => statusCode === 'Unknown')
+    .map((flightProps) => {
+      return (
+        <Flight key={flightProps.key} flightProps={flightProps} forOracle />
+      )
     })
 
   const headers = ['From', 'To', 'Take Off', 'Landing', 'ETH']
@@ -42,4 +44,4 @@ const FLightsList: FC<{
     </>
   )
 }
-export default FLightsList
+export default FlightsList

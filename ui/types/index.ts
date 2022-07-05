@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 
 export type FlightProps = {
-  key?: string
+  key: string
   from: string
   to: string
   flightRef: string
