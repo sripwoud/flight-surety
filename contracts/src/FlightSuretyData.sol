@@ -176,36 +176,20 @@ contract FlightSuretyData {
         return keccak256(abi.encodePacked(flightRef, from, to, takeOff));
     }
 
-    function paxOnFlight
-    (
-        string flightRef,
-        string from,
-        string to,
-        uint256 takeOff,
-        address passenger
-    )
+    function paxOnFlight(bytes32 key, address passenger)
     public
     view
     returns (bool onFlight)
     {
-        bytes32 flightKey = getFlightKey(flightRef, from, to, takeOff);
-        onFlight = flights[flightKey].bookings[passenger];
+        onFlight = flights[key].bookings[passenger];
     }
 
-    function subscribedInsurance
-    (
-        string flightRef,
-        string from,
-        string to,
-        uint256 takeOff,
-        address passenger
-    )
+    function subscribedInsurance(bytes32 key, address passenger)
     public
     view
     returns (uint amount)
     {
-        bytes32 flightKey = getFlightKey(flightRef, from, to, takeOff);
-        amount = flights[flightKey].insurances[passenger];
+        amount = flights[key].insurances[passenger];
     }
 
     function getFlightPrice(bytes32 flightKey)

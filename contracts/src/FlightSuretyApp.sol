@@ -86,7 +86,7 @@ contract FlightSuretyApp {
 
     event FlightRegistered(string flightRef, string from, string to, uint takeOff);
     event WithdrawRequest(address recipient);
-    event FlightProcessed(string flightRef, string destination, uint timestamp, uint8 statusCode);
+    event FlightProcessed(bytes32 key, uint8 statusCode);
 
     /////////////////////////////// MODIFIERS
 
@@ -239,23 +239,15 @@ contract FlightSuretyApp {
         emit FlightRegistered(flightRef, from, to, takeOff);
     }
 
-    function book
-    (
-        string _flight,
-        string _to,
-        uint _landing,
-        uint amount
-    )
+    function book(bytes32 key, uint amount)
     external
     valWithinRange(amount, 0, 1.05 ether) // +0.05 to cover gas costs
-    paidEnough(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
-    checkValue(flightSuretyData.getFlightPrice(getFlightKey(_flight, _to, _landing)).add(amount))
+    paidEnough(flightSuretyData.getFlightPrice(key).add(amount))
+    checkValue(flightSuretyData.getFlightPrice(key).add(amount))
     requireIsOperational
     payable
     {
-        bytes32 flightKey = getFlightKey(_flight, _to, _landing);
-
-        flightSuretyData.book.value(msg.value)(flightKey, amount.mul(3).div(2), msg.sender);
+        flightSuretyData.book.value(msg.value)(key, amount.mul(3).div(2), msg.sender);
     }
 
     function withdraw()
@@ -267,43 +259,27 @@ contract FlightSuretyApp {
     }
 
     //Called after oracle has updated flight status
-    function processFlightStatus
-    (
-        string flightRef,
-        string destination,
-        uint256 timestamp,
-        uint8 statusCode
-    )
+    function processFlightStatus(bytes32 key, uint8 statusCode)
     internal
     requireIsOperational
     {
-        // generate flightKey
-        bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
-        flightSuretyData.processFlightStatus(flightKey, statusCode);
-
-        emit FlightProcessed(flightRef, destination, timestamp, statusCode);
+        flightSuretyData.processFlightStatus(key, statusCode);
+        emit FlightProcessed(key, statusCode);
     }
 
 
     // Generate a request for oracles to fetch flight information
-    function fetchFlightStatus
-    (
-        string flight,
-        string destination,
-        uint256 timestamp
-    )
+    function fetchFlightStatus(bytes32 key)
     external
     {
         uint8 index = getRandomIndex(msg.sender);
 
-        // Generate a unique key for storing the request
-        bytes32 key = getFlightKey(flight, destination, timestamp);
         oracleResponses[key] = ResponseInfo({
         requester : msg.sender,
         isOpen : true
         });
 
-        emit OracleRequest(index, flight, destination, timestamp);
+        emit OracleRequest(index, key);
     }
 
     ////////////////////// START ORACLE MANAGEMENT REGION
@@ -340,15 +316,15 @@ contract FlightSuretyApp {
     event OracleRegistered(uint8[3] indexes);
 
     // Event fired each time an oracle submits a response
-    event OracleReport(string flight, string destination, uint256 timestamp, uint8 status);
+    event OracleReport(bytes32 key, uint8 status);
     // Event fired when number of identical responses reaches the threshold: response is accepted and is processed
-    event FlightStatusInfo(string flight, string destination, uint256 timestamp, uint8 status);
+    event FlightStatusInfo(bytes32 key, uint8 status);
 
 
     // Event fired when flight status request is submitted
     // Oracles track this and if they have a matching index
     // they fetch data and submit a response
-    event OracleRequest(uint8 index, string flight, string destination, uint256 timestamp);
+    event OracleRequest(uint8 index, bytes32 key);
 
     // Register an oracle with the contract
     function registerOracle() external payable
@@ -379,9 +355,7 @@ contract FlightSuretyApp {
     function submitOracleResponse
     (
         uint8 index,
-        string flight,
-        string destination,
-        uint256 timestamp,
+        bytes32 key,
         uint8 statusCode
     )
     external
@@ -392,13 +366,12 @@ contract FlightSuretyApp {
         );
 
 
-        bytes32 key = getFlightKey(flight, destination, timestamp);
         require(
             oracleResponses[key].isOpen,
             "Flight or timestamp do not match oracle request. Or request is closed (enough responses received)");
 
         oracleResponses[key].responses[statusCode].push(msg.sender);
-        emit OracleReport(flight, destination, timestamp, statusCode);
+        emit OracleReport(key, statusCode);
 
         /* Information isn't considered verified until at least
         MIN_RESPONSES oracles respond with the *** same *** information
@@ -406,23 +379,10 @@ contract FlightSuretyApp {
         if (oracleResponses[key].responses[statusCode].length == MIN_RESPONSES) {
             // close responseInfo
             oracleResponses[key].isOpen = false;
-            emit FlightStatusInfo(flight, destination, timestamp, statusCode);
+            emit FlightStatusInfo(key, statusCode);
             // Handle flight status as appropriate
-            processFlightStatus(flight, destination, timestamp, statusCode);
+            processFlightStatus(key, statusCode);
         }
-    }
-
-    function getFlightKey
-    (
-        string flightRef,
-        string destination,
-        uint256 timestamp
-    )
-    internal
-    pure
-    returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(flightRef, destination, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
