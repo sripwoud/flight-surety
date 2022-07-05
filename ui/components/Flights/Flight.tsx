@@ -15,8 +15,16 @@ const Flight: FC<{
   key: number
   forOracle?: boolean
 }> = ({ key, flightProps: flightProps, forOracle }) => {
-  const { flightRef, from, to, price, takeOff, landing, paxOnFlight } =
-    flightProps
+  const {
+    flightRef,
+    from,
+    to,
+    price,
+    takeOff,
+    landing,
+    paxOnFlight,
+    statusCode
+  } = flightProps
 
   const [withInsurance, setWithInsurance] = useState(false)
   const [amount, setAmount] = useState<number>(0.01)
@@ -57,33 +65,38 @@ const Flight: FC<{
         <Table.Cell collapsing>
           <Button onClick={handleAskPress}>Ask Status</Button>
         </Table.Cell>
+      ) : paxOnFlight ? (
+        <>
+          <Table.Cell>{statusCode}</Table.Cell>
+          {!['On time', 'unknown'].includes(statusCode) && (
+            <Button>Claim</Button>
+          )}
+        </>
       ) : (
-        !paxOnFlight && (
-          <>
-            <Table.Cell collapsing>
-              <Checkbox
-                slider
-                onChange={handleToggleInsurance}
-                checked={withInsurance}
-                style={{ marginRight: '10px' }}
+        <>
+          <Table.Cell collapsing>
+            <Checkbox
+              slider
+              onChange={handleToggleInsurance}
+              checked={withInsurance}
+              style={{ marginRight: '10px' }}
+            />
+            {withInsurance && (
+              <Input
+                icon="ethereum"
+                type="number"
+                min="0.001"
+                max={1}
+                step={0.01}
+                value={amount}
+                onChange={handleAmount}
               />
-              {withInsurance && (
-                <Input
-                  icon="ethereum"
-                  type="number"
-                  min="0.001"
-                  max={1}
-                  step={0.01}
-                  value={amount}
-                  onChange={handleAmount}
-                />
-              )}
-            </Table.Cell>
-            <Table.Cell collapsing>
-              <Button onClick={handleBookPress}>Book</Button>
-            </Table.Cell>
-          </>
-        )
+            )}
+          </Table.Cell>
+          <Table.Cell collapsing>
+            <Button onClick={handleBookPress}>Book</Button>
+          </Table.Cell>
+        </>
       )}
     </Table.Row>
   )

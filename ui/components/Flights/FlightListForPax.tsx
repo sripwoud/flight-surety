@@ -18,7 +18,9 @@ const FLightsList: FC<{
     })
 
   const _headers = ['From', 'To', 'Take Off', 'Landing', 'ETH']
-  const headers = booked ? _headers : [..._headers, 'Insurance', '']
+  const headers = booked
+    ? [..._headers, 'Status', 'Claim']
+    : [..._headers, 'Insurance', '']
 
   return (
     <>

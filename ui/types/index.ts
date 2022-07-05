@@ -9,4 +9,5 @@ export type FlightProps = {
   takeOff: Date
   landing: Date
   paxOnFlight: boolean
+  statusCode: string
 }

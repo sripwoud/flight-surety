@@ -9,9 +9,11 @@ const FLightsList: FC<{
   booked?: boolean
   title: string
 }> = ({ title }) => {
-  const Flights = useFlights().map((flightProps, i) => {
-    return <Flight key={i} flightProps={flightProps} forOracle />
-  })
+  const Flights = useFlights()
+    .filter(({ statusCode }) => statusCode === 'unknown')
+    .map((flightProps, i) => {
+      return <Flight key={i} flightProps={flightProps} forOracle />
+    })
 
   const headers = ['From', 'To', 'Take Off', 'Landing', 'ETH']
 
