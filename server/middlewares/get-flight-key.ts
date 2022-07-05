@@ -1,11 +1,13 @@
-import {NextFunction, Request, Response} from 'express'
+import { NextFunction, Request, Response } from 'express'
 
 export default async (req: Request, _: Response, next: NextFunction) => {
-  const { ref, dest, landing } = req.params
+  const { flightRef, to, landing } = req.body
 
-  req.locals.key = await req.locals.dataContract.methods
-    .getFlightKey(ref, dest, landing)
-    .call()
+  req.locals.key = await req.locals.dataContract.getFlightKey(
+    flightRef,
+    to,
+    new Date(landing).getTime()
+  )
 
   next()
 }
