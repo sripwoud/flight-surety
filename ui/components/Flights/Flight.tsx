@@ -5,10 +5,7 @@ import { Button, Checkbox, Input, Table } from 'semantic-ui-react'
 import { FlightProps } from '../../types'
 import { app } from '../../contracts'
 import { useContractFunction } from '@usedapp/core'
-
-const formatDate = (date: Date) => {
-  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
-}
+import { formatDate } from '../../utils'
 
 const Flight: FC<{
   flightProps: FlightProps
