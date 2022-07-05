@@ -91,18 +91,10 @@ class Server {
       }
     })
 
-    this.appContract.on(
-      'OracleRequest',
-      async (
-        index: number,
-        flight: string,
-        destination: string,
-        timestamp: BigNumber
-      ) => {
-        console.log('OracleRequest', { flight, destination, timestamp })
-        await this.submitResponses(flight, destination, timestamp.toNumber())
-      }
-    )
+    this.appContract.on('OracleRequest', async (index: number, key: string) => {
+      console.log('OracleRequest', { index, key })
+      await this.submitResponses(index, key)
+    })
 
     // @ts-ignore
     this.appContract.on('FlightStatusInfo', (key, statusCode) => {
@@ -134,11 +126,7 @@ class Server {
     }
   }
 
-  submitResponses = async (
-    flight: string,
-    destination: string,
-    timestamp: number
-  ) => {
+  submitResponses = async (index: number, key: string) => {
     for (const oracle of this.oracles) {
       const statusCode = this.getStatusCode()
       // get indexes
@@ -152,13 +140,7 @@ class Server {
         try {
           await this.appContract
             .connect(oracle)
-            .submitOracleResponse(
-              index,
-              flight,
-              destination,
-              timestamp,
-              statusCode
-            )
+            .submitOracleResponse(index, key, statusCode)
         } catch (e) {
           console.log(`${oracle.address} ${index} submit failed`)
         }

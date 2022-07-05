@@ -22,7 +22,7 @@ const Flight: FC<{
     paxOnFlight,
     statusCode
   } = flightProps
-  console.log({ key })
+
   const [withInsurance, setWithInsurance] = useState(false)
   const [amount, setAmount] = useState<number>(0.01)
 
@@ -36,7 +36,6 @@ const Flight: FC<{
   const { send: book } = useContractFunction(app, 'book')
   const handleBookPress = () => {
     const insuranceAmount = utils.parseEther(amount.toString())
-    console.log(key)
     book(key, insuranceAmount, {
       value: price.add(insuranceAmount)
     })
