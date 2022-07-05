@@ -1,5 +1,5 @@
 import Signers from '../eth/signers'
-import { BigNumber, ethers, Signer, utils, Wallet } from 'ethers'
+import {BigNumber, ethers, Signer, utils, Wallet} from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -37,10 +37,10 @@ class Server {
   appContract
 
   constructor({
-    dataContract,
-    appContract,
-    numOracles
-  }: {
+                dataContract,
+                appContract,
+                numOracles
+              }: {
     dataContract: any
     appContract: any
     numOracles: number
@@ -74,10 +74,18 @@ class Server {
       this.storeFlight()
     })
 
-    this.appContract.on('OracleRequest', (data: any) => {
-      console.log('OracleRequest', data)
-      // this.submitResponses(data.flight, data.destination, data.timestamp)
-    })
+    this.appContract.on(
+      'OracleRequest',
+      (
+        index: number,
+        flight: string,
+        destination: string,
+        timestamp: BigNumber
+      ) => {
+        console.log('OracleRequest', { flight, destination, timestamp })
+        this.submitResponses(flight, destination, timestamp.toNumber())
+      }
+    )
   }
 
   storeFlight = async (pos?: number) => {
@@ -116,28 +124,32 @@ class Server {
     destination: string,
     timestamp: number
   ) => {
-    await Promise.all(
-      this.oracles.map(async (oracle) => {
-        const statusCode = this.getStatusCode()
-        // get indexes
-        const oracleIndexes: number[] = await this.appContract
-          .connect(oracle)
-          .getMyIndexes()
+    for (const oracle of this.oracles) {
+      const statusCode = this.getStatusCode()
+      // get indexes
+      const oracleIndexes: number[] = await this.appContract
+        .connect(oracle)
+        .getMyIndexes()
 
-        await Promise.all(
-          oracleIndexes.map(async (index) => {
-            await this.appContract
-              .connect(oracle)
-              .submitOracleResponse(
-                index,
-                flight,
-                destination + timestamp,
-                statusCode
-              )
-          })
-        )
-      })
-    )
+      console.log(oracle.address, statusCode, oracleIndexes)
+
+      for (const index of oracleIndexes) {
+        try {
+
+          await this.appContract
+            .connect(oracle)
+            .submitOracleResponse(
+              index,
+              flight,
+              destination,
+              timestamp,
+              statusCode
+            )
+        } catch (e) {
+          console.log(`${oracle.address} ${index} submit failed`)
+        }
+      }
+    }
   }
 
   registerOracle = async (oracle: Signer) => {

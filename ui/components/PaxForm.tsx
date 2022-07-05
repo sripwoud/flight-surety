@@ -1,6 +1,6 @@
 import { Divider } from 'semantic-ui-react'
 
-import FLightsList from './Flights/FlightList'
+import FLightsList from './Flights/FlightListForPax'
 
 const PaxForm = () => {
   return (

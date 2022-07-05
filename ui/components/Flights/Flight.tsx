@@ -10,14 +10,14 @@ const formatDate = (date: Date) => {
   return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
 }
 
-const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
-  key,
-  flightProps: flightProps
-}) => {
+const Flight: FC<{
+  flightProps: FlightProps
+  key: number
+  forOracle?: boolean
+}> = ({ key, flightProps: flightProps, forOracle }) => {
   const { flightRef, from, to, price, takeOff, landing, paxOnFlight } =
     flightProps
 
-  // console.log(price)
   const [withInsurance, setWithInsurance] = useState(false)
   const [amount, setAmount] = useState<number>(0.01)
 
@@ -37,6 +37,14 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
     })
   }
 
+  const { send: fetchFlightStatus } = useContractFunction(
+    app,
+    'fetchFlightStatus'
+  )
+  const handleAskPress = () => {
+    fetchFlightStatus(flightRef, to, landing.getTime())
+  }
+
   return (
     <Table.Row key={key}>
       <Table.Cell>{flightRef}</Table.Cell>
@@ -45,31 +53,37 @@ const Flight: FC<{ flightProps: FlightProps; key: number }> = ({
       <Table.Cell>{formatDate(takeOff)}</Table.Cell>
       <Table.Cell>{formatDate(landing)}</Table.Cell>
       <Table.Cell>{utils.formatEther(price)}</Table.Cell>
-      {!paxOnFlight && (
-        <>
-          <Table.Cell collapsing>
-            <Checkbox
-              slider
-              onChange={handleToggleInsurance}
-              checked={withInsurance}
-              style={{ marginRight: '10px' }}
-            />
-            {withInsurance && (
-              <Input
-                icon="ethereum"
-                type="number"
-                min="0.001"
-                max={1}
-                step={0.01}
-                value={amount}
-                onChange={handleAmount}
+      {forOracle ? (
+        <Table.Cell collapsing>
+          <Button onClick={handleAskPress}>Ask Status</Button>
+        </Table.Cell>
+      ) : (
+        !paxOnFlight && (
+          <>
+            <Table.Cell collapsing>
+              <Checkbox
+                slider
+                onChange={handleToggleInsurance}
+                checked={withInsurance}
+                style={{ marginRight: '10px' }}
               />
-            )}
-          </Table.Cell>
-          <Table.Cell collapsing>
-            <Button onClick={handleBookPress}>Book</Button>
-          </Table.Cell>
-        </>
+              {withInsurance && (
+                <Input
+                  icon="ethereum"
+                  type="number"
+                  min="0.001"
+                  max={1}
+                  step={0.01}
+                  value={amount}
+                  onChange={handleAmount}
+                />
+              )}
+            </Table.Cell>
+            <Table.Cell collapsing>
+              <Button onClick={handleBookPress}>Book</Button>
+            </Table.Cell>
+          </>
+        )
       )}
     </Table.Row>
   )

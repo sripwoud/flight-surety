@@ -6,10 +6,10 @@ import Flight from './Flight'
 import { useFlights } from '../../hooks'
 import { useEthers } from '@usedapp/core'
 
-const FLightsList: FC<{ booked?: boolean; title: string }> = ({
-  booked = false,
-  title
-}) => {
+const FLightsList: FC<{
+  booked?: boolean
+  title: string
+}> = ({ booked = false, title }) => {
   const { account } = useEthers()
   const Flights = useFlights(account)
     .filter(({ paxOnFlight }) => paxOnFlight === booked)
