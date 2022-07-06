@@ -117,6 +117,14 @@ contract FlightSuretyData {
     function threshold() internal view returns (uint _threshold) {
         _threshold = registeredAirlinesCount.div(2);
     }
+
+    function hasFunded(address airlineAddress)
+    external
+    view
+    returns (bool _hasFunded)
+    {
+        _hasFunded = airlines[airlineAddress].funded;
+    }
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
