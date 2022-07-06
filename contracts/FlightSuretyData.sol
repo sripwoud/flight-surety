@@ -33,7 +33,7 @@ contract FlightSuretyData {
         uint256 landing;
         uint256 updatedTimestamp;
         address airline;
-        string flight;
+        string flightRef;
         uint price;
         string from;
         string to;
@@ -42,8 +42,12 @@ contract FlightSuretyData {
 
     mapping(bytes32 => Flight) public flights;
 
-    // Insurances: list amount that can be be claimed by passenger
-    mapping(address => uint) public claims;
+    /* Withdrawals:
+    - passengers: insurance claims
+    - airlines: flights prices paid by passengers
+    */
+
+    mapping(address => uint) public withdrawals;
 
 
     // Multi-party consensus
@@ -107,6 +111,22 @@ contract FlightSuretyData {
             "Airline must provide funding before being able to perform this action");
         _;
     }
+
+    modifier flightRegistered(bytes32 flightKey) {
+        require(flights[flightKey].isRegistered, "This flight does not exist");
+        _;
+    }
+
+    modifier paidEnough(uint _price) {
+        require(msg.value >= _price, "Value sent does not cover the price!");
+        _;
+    }
+
+    modifier checkValue(uint _price, address sender) {
+        uint amountToReturn = msg.value - _price;
+        sender.transfer(amountToReturn);
+        _;
+    }
     /////////////////////////// UTILITY FUNCTIONS
     /**
     * @dev Sets contract operations on/off
@@ -147,6 +167,34 @@ contract FlightSuretyData {
     returns (uint numVotes)
     {
         numVotes = votes[airlineToBeAdded].length;
+    }
+
+    function getFlightKey
+    (
+        string flightRef,
+        string destination,
+        uint256 timestamp
+    )
+    public
+    pure
+    returns(bytes32)
+    {
+        return keccak256(abi.encodePacked(flightRef, destination, timestamp));
+    }
+
+    function paxOnFlight
+    (
+        string flightRef,
+        string destination,
+        uint256 timestamp,
+        address passenger
+    )
+    public
+    view
+    returns(bool onFlight)
+    {
+        bytes32 flightKey = keccak256(abi.encodePacked(flightRef, destination, timestamp));
+        onFlight = flights[flightKey].passengers[passenger];
     }
 
     //////////////////////// SMART CONTRACT FUNCTIONS
@@ -225,7 +273,6 @@ contract FlightSuretyData {
         );
         bytes32 flightKey = keccak256(abi.encodePacked(_flight, _to, _landing));
         flights[flightKey] = flight;
-        flights[flightKey].passengers[originAddress] = true;
         // event emission via app contract
     }
 
@@ -234,13 +281,19 @@ contract FlightSuretyData {
     * @dev Passenger Buys insurance for a flight
     *
     */
-    function buy(address originAddress)
+    function buy(bytes32 flightKey, uint amount, address originAddress)
     external
     requireIsOperational
+    flightRegistered(flightKey)
     callerAuthorized
+    paidEnough(flights[flightKey].price.add(amount))
+    checkValue(flights[flightKey].price.add(amount), originAddress)
     payable
     {
-        claims[originAddress] = msg.value;
+        Flight storage flight = flights[flightKey];
+        flight.passengers[originAddress] = true;
+        withdrawals[originAddress] = amount;
+        withdrawals[flight.airline] = flight.price;
     }
 
     /**
@@ -278,19 +331,6 @@ contract FlightSuretyData {
     payable
     {
         airlines[originAddress].funded = true;
-    }
-
-    function getFlightKey
-    (
-        address airline,
-        string memory flight,
-        uint256 timestamp
-    )
-    internal
-    pure
-    returns(bytes32)
-    {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
     /**
