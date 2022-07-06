@@ -170,10 +170,19 @@ contract('Oracles', async (accounts) => {
     }
   })
 
-  it('Request is closed after enough concurring answers have been received', async () => {
+  it('Closes Request after enough concurring answers have been received', async () => {
     const key = await config.flightSuretyData.getFlightKey(flight, destination, timestamp)
     const request = await config.flightSuretyApp.oracleResponses(key)
     assert(!request.isOpen, 'Request should be closed')
+  })
+
+  it('Updates Flight Status after enough concurring answers have been received', async () => {
+    const key = await config.flightSuretyData.getFlightKey(flight, destination, timestamp)
+    const flightStruct = await config.flightSuretyData.flights(key)
+    assert.equal(
+      +flightStruct.statusCode, STATUS_CODE_LATE_AIRLINE,
+      'Flight status was not updated correctly'
+    )
   })
 
   it('(passenger) Can withdraw credited insurance amount', async () => {
