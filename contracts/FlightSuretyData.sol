@@ -47,7 +47,7 @@ contract FlightSuretyData {
 
 
     // Multi-party consensus
-    address[] public multiCalls = new address[](0);
+    mapping(address => address[]) votes;
 
     ////////////////////////// EVENTS
 
@@ -157,7 +157,6 @@ contract FlightSuretyData {
     callerAuthorized
     airlineRegistered(originAddress) // redundant?
     airlineFunded(originAddress)
-    returns (uint additionalVotesRequired)
     {
         // only first Airline can register a new airline when less than 4 airlines are registered
         if (registeredAirlinesCount < 4) {
@@ -169,20 +168,20 @@ contract FlightSuretyData {
         } else {
             // multi party consensus
             bool isDuplicate = false;
-            for (uint i=0; i < multiCalls.length; i++) {
-                if (multiCalls[i] == originAddress) {
+            for (uint i=0; i < votes[airlineAddress].length; i++) {
+                if (votes[airlineAddress][i] == originAddress) {
                     isDuplicate = true;
                     break;
                 }
             }
             require(!isDuplicate, "Caller cannot call this function twice");
-            multiCalls.push(originAddress);
-            if (multiCalls.length >= threshold()) {
+            votes[airlineAddress].push(originAddress);
+
+            if (votes[airlineAddress].length >= threshold()) {
                 airlines[airlineAddress].registered = true;
                 registeredAirlinesCount++;
-                multiCalls = new address[](0);
+                votes[airlineAddress] = new address[](0);
             }
-            additionalVotesRequired = threshold() - multiCalls.length;
         }
     }
 
