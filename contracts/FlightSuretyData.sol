@@ -51,9 +51,11 @@ contract FlightSuretyData {
 
 
     // Multi-party consensus
+    // mapping instead of an array I want to count not only multicalls but multicalls per to-be-added airline
     mapping(address => address[]) internal votes;
 
     ////////////////////////// EVENTS
+    event Paid(address recipient, uint amount);
 
     ///////////////////////// CONSTRUCTOR
 
@@ -314,14 +316,22 @@ contract FlightSuretyData {
 
 
     /**
-     *  @dev Transfers eligible payout funds to insuree
+     *  @dev Transfers eligible payout funds to insuree or airline
      *
     */
-    function pay()
+    function pay(address originAddress)
     external
     requireIsOperational
-    view
+    callerAuthorized
     {
+        // Check
+        require(withdrawals[originAddress] > 0, "No amount to be transferred to this address");
+        // Effect
+        uint amount = withdrawals[originAddress];
+        withdrawals[originAddress] = 0;
+        // Interaction
+        originAddress.transfer(amount);
+        emit Paid(originAddress, amount);
     }
 
    /**
@@ -348,6 +358,4 @@ contract FlightSuretyData {
         require(msg.data.length == 0);
         fund(msg.sender);
     }
-
-
 }

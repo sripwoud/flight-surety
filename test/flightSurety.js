@@ -6,6 +6,17 @@ const keccak256 = require('keccak256')
 
 contract('Flight Surety Tests', async (accounts) => {
   var config
+  // Operations and Settings
+  // !!!!Warning: .toWei() returns a string
+  const minFund = web3.utils.toWei('10', 'ether')
+  const insurancePayment = web3.utils.toWei('0.1', 'ether')
+  const ticketPrice = web3.utils.toWei('0.5', 'ether')
+  const takeOff = Math.floor(Date.now() / 1000) + 1000
+  const landing = takeOff + 1000
+  const from = 'HAM'
+  const to = 'PAR'
+  const flightRef = 'AF0187'
+
   before('setup contract', async () => {
     config = await Test.Config(accounts)
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address)
@@ -14,15 +25,6 @@ contract('Flight Surety Tests', async (accounts) => {
   it('First account is firstAirline', async () => {
     assert.equal(config.firstAirline, accounts[1])
   })
-
-  // Operations and Settings
-  const minFund = web3.utils.toWei('10', 'ether')
-  const takeOff = Math.floor(Date.now() / 1000) + 1000
-  const landing = takeOff + 1000
-  const from = 'HAM'
-  const to = 'PAR'
-  const ticketPrice = 10
-  const flightRef = 'AF0187'
 
   it('(Data Contract) Has correct initial isOperational() value', async function () {
     // Get operating status
@@ -158,21 +160,23 @@ contract('Flight Surety Tests', async (accounts) => {
 
     const flightKey = await config.flightSuretyData.getFlightKey(flightRef, to, landing)
     const flight = await config.flightSuretyData.flights.call(flightKey)
-    // assert.equal(flight.isRegistered, 'Error: flight was not registered')
     assert(flight.isRegistered, 'Error: flight was not registered')
+    assert.equal(flight.price, ticketPrice)
     truffleAssert.eventEmitted(tx, 'FlightRegistered', ev => {
       return ev.ref === flightRef
     })
   })
 
   it('(passenger) Can book a flight and subscribe an insurance', async () => {
-    // console.log(config.testAddresses[3])
     await config.flightSuretyApp.book(
       flightRef,
       to,
       landing,
-      10,
-      { from: accounts[9], value: 1010 }
+      insurancePayment,
+      {
+        from: accounts[9],
+        value: (+ticketPrice + (+insurancePayment) * 2) // somehow needed to send more to cover tx costs??
+      }
     )
     const paxOnFlight = await config.flightSuretyData.paxOnFlight.call(
       flightRef,
@@ -181,10 +185,20 @@ contract('Flight Surety Tests', async (accounts) => {
       accounts[9]
     )
     assert(paxOnFlight, 'Flight booking unsuccessful')
-    const insurance = await config.flightSuretyData.withdrawals.call(accounts[9])
+    const insuranceCredit = await config.flightSuretyData.withdrawals.call(accounts[9])
     assert.equal(
-      +insurance,
-      Math.floor(10 * 3 / 2),
+      +insuranceCredit,
+      Math.floor(+insurancePayment * 3 / 2),
       'Insurance amount not credited correctly')
+  })
+
+  it('(withdraw function) Passenger (if insured flight is delayed) or airline (for paid flight tickets) can withdraw their credited money', async () => {
+    const balanceBefore = await web3.eth.getBalance(accounts[9])
+    const tx = await config.flightSuretyApp.withdraw({ from: accounts[9] })
+    const balanceAfter = await web3.eth.getBalance(accounts[9])
+    assert(+balanceBefore < +balanceAfter, 'Error')
+    truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
+      return ev.recipient === accounts[9]
+    })
   })
 })
