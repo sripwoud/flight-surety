@@ -175,7 +175,15 @@ const Server = {
       for (let i = 0; i < indexFlightKeys + 1; i++) {
         const key = await flightSuretyData.methods.flightKeys(i).call()
         const flight = await flightSuretyData.methods.flights(key).call()
-        this.flights.push(flight)
+        for (let i = 0; i < 9; i++) {
+          delete flight[i.toString()]
+        }
+        // as unique key, an index is added and will be displayed in the front end form (instead of displaying the hash key)
+        this.flights.push({
+          index: i,
+          key: key,
+          flight: flight
+        })
       }
     } catch (error) {
       // console.log('No flights to add')
