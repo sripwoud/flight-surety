@@ -41,14 +41,14 @@ import './flightsurety.css'
     DOM.elid('register-flight').addEventListener('click', async () => {
       const takeOff = new Date(DOM.elid('regFlightTakeOff').value).getTime()
       const landing = new Date(DOM.elid('regFlightLanding').value).getTime()
-      const flight = DOM.elid('regFlightRef').value
+      const flightRef = DOM.elid('regFlightRef').value
       const price = DOM.elid('regFlightPrice').value
       const from = DOM.elid('regFlightFrom').value
       const to = DOM.elid('regFlightTo').value
       const { address, error } = await contract.registerFlight(
         takeOff,
         landing,
-        flight,
+        flightRef,
         price,
         from,
         to)
@@ -56,12 +56,24 @@ import './flightsurety.css'
       display(
         `Airline ${sliceAddress(address)}`,
         'Register Flight', [{
-          label: `${flight}`,
+          label: `${flightRef}`,
           error: error,
           value: `${textNoPrice}` }])
-      let datalist = DOM.elid('flights')
-      let option = DOM.option({ value: `${price} ETH - ${textNoPrice}` })
-      datalist.appendChild(option)
+
+      // Append
+      if (!error) {
+        const flight = await contract.getFlight(flightRef, to, landing)
+        // append flight to passenger selection list
+        let datalist = DOM.elid('flights')
+        let option = DOM.option({ value: `${price} ETH - ${textNoPrice}` })
+        datalist.appendChild(option)
+        // append to oracle submission list
+        datalist = DOM.elid('oracle-requests')
+        option = DOM.option({ value: `${flightRef} - ${to} - ${landing}` })
+        datalist.appendChild(option)
+      } else {
+        console.error('Flight was not appended to selection lists')
+      }
     })
 
     // Provide funding

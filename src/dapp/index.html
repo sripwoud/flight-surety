@@ -27,8 +27,10 @@
           <div class='user-menu'>
             <h3>Oracles</h3>
             <div class="action last">
-              <label class="form">Flight
-                <input type="text" id="flight-number">
+              <label class="form">Flight (ref - to - landing)
+                <input list="oracle-requests">
+                <datalist id="oracle-requests">
+                </datalist>
               </label>
               <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
             </div>
@@ -72,7 +74,7 @@
           <div class='user-menu'>
             <h3>Passenger</h3>
             <div class="action border-bottom">
-              <label class="form">Flight
+              <label class="form">Flight (price - from - to - take off - landing)
                 <input list="flights" id="buyFlight">
                 <datalist id="flights">
                 </datalist>

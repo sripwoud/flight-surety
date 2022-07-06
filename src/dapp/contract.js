@@ -1,4 +1,5 @@
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json'
+import FlightSuretyData from '../../build/contracts/FlightSuretyData.json'
 import Config from './config.json'
 import Web3 from 'web3'
 
@@ -26,6 +27,7 @@ export default class Contract {
 
     // Load contract
     this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress)
+    this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.appAddress)
     this.initialize(callback)
     this.account = null
     this.flights = []
@@ -109,5 +111,17 @@ export default class Contract {
       }, (error, result) => {
         callback(error, { address: self.account, amount: amount })
       })
+  }
+
+  async getFlight (flightRef, to, landing) {
+    let self = this
+    try {
+      const flightKey = await self.flightSuretyData.methods.getFlightKey(flightRef, to, landing).call({ from: self.account })
+      console.log(flightKey)
+      const flight = await self.flightSuretyData.flights().call(flightKey)
+      return flight
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
