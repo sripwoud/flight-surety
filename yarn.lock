@@ -998,6 +998,11 @@ js-sha3@0.8.0:
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.8.0.tgz#b9b7a5da73afad7dedd0f8c463954cbde6818840"
   integrity sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==
 
+line-replace@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/line-replace/-/line-replace-2.0.1.tgz#227c8839003b178dd080ca67fd280eb537f8c168"
+  integrity sha512-CSr3f6gynLCA9R+RBS0IDIfv7a8OAXcuyq+CHgq0WzbQ7KSJQfF5DgtpRVxpSp1KBNXogtzbNqAeUjrmHYTPYA==
+
 lru-cache@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-6.0.0.tgz#6d6fe6570ebd96aaf90fcad1dafa3b2566db3a94"

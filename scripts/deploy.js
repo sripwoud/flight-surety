@@ -1,29 +1,13 @@
-const { exec } = require('child_process')
 const { ethers } = require('ethers')
+const lineReplace = require('line-replace')
+const path = require('path')
 
 const config = require('../config.json')
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
-const signer = ethers.Wallet.fromMnemonic(process.env.mnemonic).connect(
+const signer = ethers.Wallet.fromMnemonic(process.env.MNEMONIC_DEV).connect(
   provider
 )
-
-const DASEL_CMD = 'dasel put string -f config.json -r json'
-const cb = (error, stdout, stderr) => {
-  if (error) {
-    console.log(`error: ${error.message}`)
-    return
-  }
-  if (stderr) {
-    console.log(`stderr: ${stderr}`)
-    return
-  }
-  console.log(`stdout: ${stdout}`)
-}
-
-const updateInConfigFile = (fieldName, value) => {
-  exec(`${DASEL_CMD} '.${fieldName}' ${value}`, cb)
-}
 
 const deploy = async (contractName, params) => {
   const fieldName = `${contractName.toLowerCase()}Address`
@@ -49,7 +33,6 @@ const deploy = async (contractName, params) => {
 
   await contract.deployed()
   console.log(`${contractName} Contract deployed at ${contract.address}`)
-  updateInConfigFile(fieldName, contract.address)
 
   return contract
 }
@@ -57,6 +40,23 @@ const deploy = async (contractName, params) => {
 async function main() {
   const data = await deploy('Data', [signer.address])
   const app = await deploy('App', [data.address])
+
+  const file = path.join(__dirname, '..', '.env')
+  lineReplace({
+    file,
+    line: 3,
+    text: `DATA_ADDRESS='${data.address}'`,
+    addNewLine: true,
+    callback: () => {
+      lineReplace({
+        file,
+        line: 4,
+        text: `APP_ADDRESS='${app.address}'`,
+        addNewLine: true,
+        callback: () => {}
+      })
+    }
+  })
 
   const tx = await data.authorizeCaller(app.address)
   await tx.wait()
@@ -66,8 +66,6 @@ async function main() {
   console.log(`Airline 0 ${signer.address} has funded`)
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main()
   .then(() => process.exit(0))
   .catch((error) => {
