@@ -119,17 +119,6 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier paidEnough(uint _price) {
-        require(msg.value >= _price, "Value sent does not cover the price!");
-        _;
-    }
-
-    modifier checkValue(uint _price, address sender) {
-        uint amountToReturn = msg.value - _price;
-        sender.transfer(amountToReturn);
-        _;
-    }
-
     modifier valWithinRange(uint val, uint low, uint up) {
         require(val < up, "Value higher than max allowed");
         require(val > low, "Value lower than min allowed");
@@ -201,8 +190,16 @@ contract FlightSuretyData {
     view
     returns(bool onFlight)
     {
-        bytes32 flightKey = keccak256(abi.encodePacked(flightRef, destination, timestamp));
+        bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
         onFlight = flights[flightKey].passengers[passenger];
+    }
+
+    function getFlightPrice(bytes32 flightKey)
+    external
+    view
+    returns (uint price)
+    {
+        price = flights[flightKey].price;
     }
 
     //////////////////////// SMART CONTRACT FUNCTIONS
@@ -294,8 +291,6 @@ contract FlightSuretyData {
     requireIsOperational
     callerAuthorized
     flightRegistered(flightKey)
-    paidEnough(flights[flightKey].price.add(amount))
-    checkValue(flights[flightKey].price.add(amount), originAddress)
     valWithinRange(amount, 0, 1.5 ether)
     payable
     {
