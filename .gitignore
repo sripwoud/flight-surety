@@ -3,7 +3,5 @@ cache
 *.log
 .idea
 
-.env
-
-.swc
 .next
+.swc
