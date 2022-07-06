@@ -81,8 +81,9 @@ export default class Contract {
 
   async registerFlight (takeOff, landing, flight, price, from, to) {
     try {
+      const priceWei = this.web3.utils.toWei(price.toString(), 'ether')
       await this.flightSuretyApp.methods
-        .registerFlight(takeOff, landing, flight, price, from, to)
+        .registerFlight(takeOff, landing, flight, priceWei, from, to)
         .send({ from: this.account })
 
       // POST flight to server
