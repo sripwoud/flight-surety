@@ -48,6 +48,8 @@ contract FlightSuretyData {
     address[] internal passengers;
 
     mapping(bytes32 => Flight) public flights;
+    bytes32[] public flightKeys;
+    uint public indexFlightKeys = 0;
 
     /* Withdrawals:
     - passengers: insurance claims
@@ -309,6 +311,7 @@ contract FlightSuretyData {
         );
         bytes32 flightKey = keccak256(abi.encodePacked(_flight, _to, _landing));
         flights[flightKey] = flight;
+        indexFlightKeys = flightKeys.push(flightKey).sub(1);
         // event emission in app contract
     }
 
