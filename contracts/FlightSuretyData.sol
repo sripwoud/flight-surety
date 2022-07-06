@@ -127,6 +127,12 @@ contract FlightSuretyData {
         sender.transfer(amountToReturn);
         _;
     }
+
+    modifier valWithinRange(uint val, uint low, uint up) {
+        require(val < up, "Value higher than max allowed");
+        require(val > low, "Value lower than min allowed");
+        _;
+    }
     /////////////////////////// UTILITY FUNCTIONS
     /**
     * @dev Sets contract operations on/off
@@ -281,13 +287,14 @@ contract FlightSuretyData {
     * @dev Passenger Buys insurance for a flight
     *
     */
-    function buy(bytes32 flightKey, uint amount, address originAddress)
+    function book(bytes32 flightKey, uint amount, address originAddress)
     external
     requireIsOperational
-    flightRegistered(flightKey)
     callerAuthorized
+    flightRegistered(flightKey)
     paidEnough(flights[flightKey].price.add(amount))
     checkValue(flights[flightKey].price.add(amount), originAddress)
+    valWithinRange(amount, 0, 1.5 ether)
     payable
     {
         Flight storage flight = flights[flightKey];
@@ -296,15 +303,14 @@ contract FlightSuretyData {
         withdrawals[flight.airline] = flight.price;
     }
 
-    /**
-     *  @dev Credits payouts to insurees
-    */
-    function creditInsurees()
-    external
-    requireIsOperational
-    view
-    {
-    }
+    // /**
+    //  *  @dev Credits payouts to insurees
+    // */
+    // function creditInsurees()
+    // internal
+    // requireIsOperational
+    // {
+    // }
 
 
     /**
