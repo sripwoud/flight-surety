@@ -122,6 +122,8 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // First airline fails to register 5th one
     await config.flightSuretyApp.registerAirline(accounts[5], { from: config.firstAirline })
+    const votes = await config.flightSuretyData.votesLeft.call(accounts[5])
+    assert.equal(votes, 1, 'Error: should be 1 vote left')
     let airline = await config.flightSuretyData.airlines.call(accounts[5])
     assert.equal(await airline.registered, false, 'Error: 5th airline should not have been registered')
 
