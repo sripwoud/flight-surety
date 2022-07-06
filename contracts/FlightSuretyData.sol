@@ -402,7 +402,7 @@ contract FlightSuretyData {
         flight.statusCode = statusCode;
         // Interact
         // 10 = "flight delay due to airline"
-        if (statusCode == 10) {
+        if (statusCode == 20) {
             creditInsurees(flightKey);
         }
     }
