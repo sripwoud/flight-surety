@@ -4,20 +4,25 @@ FlightSurety is an Ethereum DApp to manage flight insurances.
 
 ## User Stories
 ### Airlines
-Airlines can register other airlines or register flights.  
-Airlines can withdraw amount credited to them following flight ticket purchases
+- Airlines can register other airlines.
+- Airline can register flights **respecting following conditions**
+(otherwise the transaction will be rejected):
+  - Take Off date must be in the future.
+  - Landing date must be later than take Off date.
+
+- Airlines can withdraw amount credited to them following flight ticket purchases
 by passengers.
-Airlines forms a consortium governed according to the following rules:
-- Providing a funding of at least 10 ETH is required before registering flights
-or airlines.
-- Starting from a number of 4 airlines registered, consensus of 50% is required
-(votes of half of the registered airlines) for new airline registration
-- Consensus is not required to register flights
+- Airlines form a consortium governed according to the following rules:
+  - Providing a funding of at least 10 ETH is required before registering flights
+  or airlines.
+  - Starting from a number of 4 airlines registered, consensus of 50% is required
+  (votes of half of the registered airlines) for new airline registration
+  - Consensus is not required to register flights
 
 ### Passengers
-Passengers can book flights that have been registered by airlines.  
-Passengers can subscribe insurance for an amount of up to 1 ETH.  
-Insured passengers get reimbursed 1.5 x their insurance amount if a flight is
+- Passengers can book flights that have been registered by airlines.  
+- Passengers can subscribe insurance for an amount of up to 1 ETH.  
+- Insured passengers get reimbursed 1.5 x their insurance amount if a flight is
 delay due to airline's responsibility.  
 This credited amount is not transferred automatically but has to be withdrawn by
 insurees.
@@ -48,8 +53,8 @@ $ truffle develop
 truffle(develop)> test
 ```
 **Don't do** `ganache-cli` and then `truffle test`**!  
-The tests will fail because of a different nounce error (I couldn't find out how to fix this).  
-Ran from the** `truffle(develop)>` **console and they will pass just fine.**
+The tests would fail because of a different nounce error (I couldn't find out how to fix this).  
+Run from the** `truffle(develop)>` **console and they will pass just fine.**
 ![Screenshot tests](./screenshots/test.png)
 4.  Look for your mnemonic in your Metamask settings, write it in a `.secret` file, save it in the root folder.
 5.  Deploy locally  
