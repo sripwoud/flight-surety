@@ -1,4 +1,4 @@
-import Signers from '../eth/signers'
+import Signers from './eth/signers'
 import { BigNumber, ethers, Signer, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
@@ -129,20 +129,19 @@ class Server {
   submitResponses = async (index: number, key: string) => {
     for (const oracle of this.oracles) {
       const statusCode = this.getStatusCode()
-      // get indexes
       const oracleIndexes: number[] = await this.appContract
         .connect(oracle)
         .getMyIndexes()
 
-      console.log(oracle.address, statusCode, oracleIndexes)
-
       for (const index of oracleIndexes) {
-        try {
-          await this.appContract
-            .connect(oracle)
-            .submitOracleResponse(index, key, statusCode)
-        } catch (e) {
-          console.log(`${oracle.address} ${index} submit failed`)
+        if (oracleIndexes.includes(index)) {
+          try {
+            await this.appContract
+              .connect(oracle)
+              .submitOracleResponse(index, key, statusCode)
+          } catch (e) {
+            console.log(`${oracle.address} ${index} submit failed`)
+          }
         }
       }
     }

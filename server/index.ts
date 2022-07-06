@@ -5,9 +5,9 @@ import router from './routes'
 import middlewares, { notFoundErrorHandler } from './middlewares'
 import config from '../config.json'
 import Server from './Server'
-import { dataContract, appContract } from '../eth'
+import { dataContract, appContract } from './eth'
 
-const port = config.serverPort || 3001
+const port = process.env.SERVER_PORT || 3001
 const app = express()
 
 const start = async () => {
