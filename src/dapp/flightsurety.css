@@ -1,15 +1,31 @@
+#title {
+  color: #f23f52;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+#title:hover {
+  color: #007bff;
+}
+
 body {
-    background-image: url('flight.jpg'); /* Source: iStockPhoto */
+    background-image: url('flight.jpg');
     background-repeat: no-repeat;
     background-size: cover;
 }
 
+h3 {
+  color: #f23f52;
+  font-weight: 900;
+}
+
 .container {
-    margin-top: 400px;
     background-color: #000;
-    opacity: 0.9;
+    background-color: rgba(0, 0, 0, 0.78);
     color: #fff;
-    padding: 40px;
+    margin-top: 100px;
+    opacity: 0.9;
+    padding: 20px;
 }
 
 .top-20 {
@@ -17,7 +33,7 @@ body {
 }
 
 .action {
-  margin-top: 20px;
+  margin-top: 5px;
   width: 100%;
 }
 
@@ -26,15 +42,15 @@ body {
   padding-bottom: 10px;
 }
 
+.last {
+  margin-bottom: 15px;
+}
 .flexbox {
   display: flex;
   flex-flow: column nowrap;
 }
 
 .user-menu {
-  border: 2px solid #eee;
-  margin-top: 10px;
-  padding: 5px;
   width: 100%;
 }
 
@@ -62,10 +78,15 @@ label.form {
     width: 100%;
 }
 input {
-    margin-right: 30px;
+    border: 0.5rem solid white;
+    border-radius: 0.25rem;
     width: 100%;
 }
 
 btn {
   width: 100%;
+}
+.btn-primary {
+  background-color: #f23f52;
+  border-color: #f23f52;
 }
