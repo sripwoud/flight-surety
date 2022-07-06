@@ -31,7 +31,6 @@ contract FlightSuretyData {
         uint8 statusCode;
         uint256 takeOff;
         uint256 landing;
-        uint256 updatedTimestamp;
         address airline;
         string flightRef;
         uint price;
@@ -64,7 +63,7 @@ contract FlightSuretyData {
 
     ////////////////////////// EVENTS
     event Paid(address recipient, uint amount);
-
+    event Funded(address airline);
     ///////////////////////// CONSTRUCTOR
 
     constructor(address _firstAirline) public {
@@ -300,7 +299,6 @@ contract FlightSuretyData {
             0,
             _takeOff,
             _landing,
-            now,
             originAddress,
             _flight,
             _price,
@@ -309,7 +307,7 @@ contract FlightSuretyData {
         );
         bytes32 flightKey = keccak256(abi.encodePacked(_flight, _to, _landing));
         flights[flightKey] = flight;
-        // event emission via app contract
+        // event emission in app contract
     }
 
 
@@ -379,6 +377,7 @@ contract FlightSuretyData {
     payable
     {
         airlines[originAddress].funded = true;
+        emit Funded(originAddress);
     }
 
     function processFlightStatus

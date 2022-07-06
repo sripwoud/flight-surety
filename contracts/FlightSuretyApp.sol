@@ -67,28 +67,16 @@ contract FlightSuretyApp {
     // Contract control flag
     bool public operational;
 
-    // Flights
-    // struct Flight {
-    //     bool isRegistered;
-    //     uint8 statusCode;
-    //     uint256 takeOff;
-    //     uint256 landing;
-    //     uint256 updatedTimestamp;
-    //     address airline;
-    //     string flight;
-    //     uint price;
-    //     string from;
-    //     string to;
-    //     mapping(address => bool) passengers;
-    // }
     /* mapping of flight moved to data contract:
     we don't want to loose previously registered flights in the case when deploying a new app contract
     */
 
     /////////////////////////////// EVENTS
-    event FlightRegistered(string ref);
+
+    event FlightRegistered(string flightRef, string to, uint landing);
     event WithdrawRequest(address recipient);
     event FlightProcessed(string flightRef, string destination, uint timestamp, uint8 statusCode);
+
     /////////////////////////////// MODIFIERS
 
     // Contract "pausing" functionality
@@ -190,7 +178,7 @@ contract FlightSuretyApp {
             to,
             msg.sender
         );
-        emit FlightRegistered(flightRef);
+        emit FlightRegistered(flightRef, to, landing);
     }
 
     function book
