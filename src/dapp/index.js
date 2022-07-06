@@ -45,26 +45,13 @@ import './flightsurety.css'
       let [flight, destination, landing] = input
       landing = new Date(landing).getTime()
       // Write transaction
-      const { error } = await contract.fetchFlightStatus(flight, destination, landing)
-      display('Oracles', 'Triggered oracles', [{
-        label: 'Fetch Flight Status',
-        error: error,
-        value: `${flight} ${destination} ${landing}`
-      }])
+      await contract.fetchFlightStatus(flight, destination, landing)
     })
 
     // (airline) Register airline
     DOM.elid('register-airline').addEventListener('click', async () => {
       const newAirline = DOM.elid('regAirlineAddress').value
-      const { address, votes, error } = await contract.registerAirline(newAirline)
-      display(
-        `Airline ${sliceAddress(address)}`,
-        'Register Airline', [{
-          label: sliceAddress(newAirline),
-          error: error,
-          value: `${votes} more vote(s) required`
-        }]
-      )
+      await contract.registerAirline(newAirline)
     })
 
     // (airline) Register flight
@@ -75,20 +62,20 @@ import './flightsurety.css'
       const price = DOM.elid('regFlightPrice').value
       const from = DOM.elid('regFlightFrom').value
       const to = DOM.elid('regFlightTo').value
-      const { address, error } = await contract.registerFlight(
+      await contract.registerFlight(
         takeOff,
         landing,
         flightRef,
         price,
         from,
         to)
-      const textNoPrice = `${from} - ${to}: ${parseDate(takeOff)} - ${parseDate(landing)}`
-      display(
-        `Airline ${sliceAddress(address)}`,
-        'Register Flight', [{
-          label: `${flightRef}`,
-          error: error,
-          value: `${textNoPrice}` }])
+      // const textNoPrice = `${from} - ${to}: ${parseDate(takeOff)} - ${parseDate(landing)}`
+    //   display(
+    //     `Airline ${sliceAddress(address)}`,
+    //     'Register Flight', [{
+    //       label: `${flightRef}`,
+    //       error: error,
+    //       value: `${textNoPrice}` }])
     })
 
     // Provide funding
