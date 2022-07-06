@@ -64,11 +64,12 @@ This offers the following benefits:
    **API**
 
    | path        | method | request                                                          | response                   |
-       |-------------|--------|------------------------------------------------------------------|----------------------------|
+   |-------------|--------|------------------------------------------------------------------|----------------------------|
    | /flights    | GET    |                                                                  | List of registered flights |
-   | /flight/:key | GET    |                                                                  | flight                     |
-   | /response/:key| GET    |                                                                  | status code                |
+   | /flight/:key | GET    |                                                                  | flight                    |
+   | /response/:key| GET    |                                                                  | status code              |
    | /flight-key | POST   | { flightRef: string, from: string, to: string, takeOff: number } | flight key hash            |
+
 6. Start UI: `yarn start:ui` ((available on `http://localhost:3000`))
 
 ## Server API
