@@ -67,6 +67,7 @@ contract FlightSuretyData {
     event Paid(address recipient, uint amount);
     event Funded(address airline);
     event AirlineRegistered(address origin, address newAirline);
+    event Credited(address passenger, uint amount);
     ///////////////////////// CONSTRUCTOR
 
     constructor(address _firstAirline) public {
@@ -139,7 +140,7 @@ contract FlightSuretyData {
     which could e.g result in the passengers being credited their insurance amount twice.
     */
     modifier notYetProcessed(bytes32 flightKey) {
-        require(flights[flightKey].statusCode == 0, 'This flight has already been processed');
+        require(flights[flightKey].statusCode == 0, "This flight has already been processed");
         _;
     }
     /////////////////////////// UTILITY FUNCTIONS
@@ -346,6 +347,7 @@ contract FlightSuretyData {
         // loop over passengers and credit them their insurance amount
         for (uint i = 0; i < passengers.length; i++) {
             withdrawals[passengers[i]] = flight.insurances[passengers[i]];
+            emit Credited(passengers[i], flight.insurances[passengers[i]]);
         }
     }
 
@@ -402,7 +404,7 @@ contract FlightSuretyData {
         // Effect
         flight.statusCode = statusCode;
         // Interact
-        // 10 = "flight delay due to airline"
+        // 20 = "flight delay due to airline"
         if (statusCode == 20) {
             creditInsurees(flightKey);
         }
