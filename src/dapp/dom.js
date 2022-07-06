@@ -1,7 +1,7 @@
 // Source: https://hackernoon.com/how-i-converted-my-react-app-to-vanillajs-and-whether-or-not-it-was-a-terrible-idea-4b14b1b2faff
 
 export default class DOM {
-  
+
     static a = (...args) => DOM.makeElement(`a`, ...args);
     static button = (...args) => DOM.makeElement(`button`, ...args);
     static div = (...args) => DOM.makeElement(`div`, ...args);
@@ -14,6 +14,7 @@ export default class DOM {
     static section = (...args) => DOM.makeElement(`section`, ...args);
     static p = (...args) => DOM.makeElement(`p`, ...args);
     static span = (...args) => DOM.makeElement(`span`, ...args);
+    static option = (..args) => DOM.makeElement(`option`, ..args);
     static img = (...args) => DOM.makeElement(`img`, ...args);
     static td = (...args) => DOM.makeElement(`td`, ...args);
     static attributeExceptions = [
