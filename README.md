@@ -72,8 +72,6 @@ This offers the following benefits:
 
 6. Start UI: `yarn start:ui` ((available on `http://localhost:3000`))
 
-## Server API
-
 ## Resources
 
 - [Foundry](https://github.com/foundry-rs): Foundry is a blazing fast, portable and modular toolkit for Ethereum
