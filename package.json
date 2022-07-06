@@ -9,6 +9,7 @@
   "license": "MIT",
   "scripts": {
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
+    "compile": "cd contracts && forge build && find ../server/eth/contracts ../ui/contracts -maxdepth 0 -type d -exec cp out/FlightSuretyApp.sol/FlightSuretyApp.json out/FlightSuretyData.sol/FlightSuretyData.json {} \\;",
     "deploy": "node scripts/deploy",
     "start:server": "ts-node-dev --poll -T server/index.ts",
     "start:ui": "cd ui && yarn dev"

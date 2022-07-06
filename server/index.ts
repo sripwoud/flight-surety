@@ -5,7 +5,7 @@ import router from './routes'
 import middlewares, { notFoundErrorHandler } from './middlewares'
 import config from '../config.json'
 import Server from './Server'
-import { dataContract, appContract } from '../eth'
+import { dataContract, appContract } from './eth'
 
 const port = config.serverPort || 3001
 const app = express()
