@@ -3,6 +3,7 @@ import DOM from './dom'
 import Contract from './contract'
 import './flightsurety.css'
 
+
 (async () => {
   let result = null
 
@@ -118,11 +119,20 @@ import './flightsurety.css'
         `Passenger ${sliceAddress(passenger)}`,
         'Book flight',
         [{
-          label: `${flight} to ${to} lands at ${landing}`,
+          label: `${flight} to ${to} lands at ${parseDate(landing)}`,
           error: error,
           value: `insurance: ${insurance} ETH`
         }]
       )
+    })
+
+    // Withdraw funds
+    DOM.elid('pay').addEventListener('click', () => {
+      try {
+        contract.withdraw()
+      } catch (error) {
+        console.log(error.message)
+      }
     })
   })
 })()
