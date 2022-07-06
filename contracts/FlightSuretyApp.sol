@@ -1,21 +1,34 @@
 pragma solidity ^0.4.25;
 
-// It's important to avoid vulnerabilities due to numeric overflow bugs
+/* It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
-// More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
+// More info:
+https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
+*/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+
+
+// FlightSuretyData Interface contract
+contract FlightSuretyData {
+    function registerAirline(address airlineAddress, address originAddress) external;
+
+}
+
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
 /************************************************** */
 contract FlightSuretyApp {
-    using SafeMath for uint256; // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
+    // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
+    using SafeMath for uint256;
 
+    // State var for data contract
+    FlightSuretyData flightSuretyData;
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-
+    address public test;
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
@@ -47,8 +60,7 @@ contract FlightSuretyApp {
     *      This is used on all state changing functions to pause the contract in
     *      the event there is an issue that needs to be fixed
     */
-    modifier requireIsOperational()
-    {
+    modifier requireIsOperational() {
          // Modify to call data contract's status
         require(true, "Contract is currently not operational");
         _;  // All modifiers require an "_" which indicates where the function body will be added
@@ -57,8 +69,7 @@ contract FlightSuretyApp {
     /**
     * @dev Modifier that requires the "ContractOwner" account to be the function caller
     */
-    modifier requireContractOwner()
-    {
+    modifier requireContractOwner() {
         require(msg.sender == contractOwner, "Caller is not contract owner");
         _;
     }
@@ -66,14 +77,14 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
-
     /**
     * @dev Contract constructor
     *
     */
     // TODO: instantiate data contract in app constructor
-    constructor() public {
+    constructor(address dataContractAddress) public {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContractAddress);
     }
 
     /********************************************************************************************/
@@ -94,12 +105,10 @@ contract FlightSuretyApp {
     * @dev Add an airline to the registration queue
     *
     */
-    function registerAirline()
+    function registerAirline(address airlineAddress)
     external
-    pure
-    returns(bool success, uint256 votes)
     {
-        return (success, 0);
+        flightSuretyData.registerAirline(airlineAddress, msg.sender);
     }
 
 
