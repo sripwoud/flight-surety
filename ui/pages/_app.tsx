@@ -8,10 +8,8 @@ import { DAppProvider, Config } from '@usedapp/core'
 import Layout from '../components/Layout'
 
 const config: Config = {
-  readOnlyChainId: 31337,
-  readOnlyUrls: {
-    31337: 'http://127.0.0.1:8545'
-  }
+  readOnlyChainId: 3,
+  readOnlyUrls: { 3: process.env.RPC_URL! }
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
