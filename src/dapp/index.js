@@ -23,7 +23,7 @@ import './flightsurety.css'
         .then(flights => {
           flights.forEach(flight => {
             // append only flights that haven't been processed yet
-            if (flight.statusCode === 0) {
+            if (flight.statusCode == 0) {
               // append flight to passenger selection list
               let { price, flightRef, from, to, takeOff, landing } = flight
               price = price / 1000000000000000000
