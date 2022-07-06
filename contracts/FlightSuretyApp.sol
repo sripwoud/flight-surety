@@ -96,7 +96,8 @@ contract FlightSuretyApp {
     }
 
     modifier hasfunded() {
-        require(flightSuretyData.hasFunded(msg.sender), "Airline must be registered in order to regsiter flights");
+        require(flightSuretyData.hasFunded(msg.sender),
+        "Airline must provide funding in order to become allowed to register flights");
         _;
     }
 
