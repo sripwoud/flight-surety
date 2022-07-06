@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 
 import addresses from './addresses'
+
 import appArtifact from './FlightSuretyApp.json'
 import dataArtifact from './FlightSuretyData.json'
 
