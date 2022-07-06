@@ -37,8 +37,16 @@ contract FlightSuretyData {
         uint price;
         string from;
         string to;
-        mapping(address => bool) passengers;
+        mapping(address => bool) bookings;
+        mapping(address => uint) insurances;
+
     }
+
+    /* Have to be out of the Flight struct type,
+    otherwise can't use FLight constructor in the registerFLight function.
+    (unlike mapping object, array argument can't be omitted)
+    */
+    address[] internal passengers;
 
     mapping(bytes32 => Flight) public flights;
 
@@ -191,7 +199,22 @@ contract FlightSuretyData {
     returns(bool onFlight)
     {
         bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
-        onFlight = flights[flightKey].passengers[passenger];
+        onFlight = flights[flightKey].bookings[passenger];
+    }
+
+    function subscribedInsurance
+    (
+        string flightRef,
+        string destination,
+        uint256 timestamp,
+        address passenger
+    )
+    public
+    view
+    returns(uint amount)
+    {
+        bytes32 flightKey = getFlightKey(flightRef, destination, timestamp);
+        amount = flights[flightKey].insurances[passenger];
     }
 
     function getFlightPrice(bytes32 flightKey)
@@ -295,19 +318,25 @@ contract FlightSuretyData {
     payable
     {
         Flight storage flight = flights[flightKey];
-        flight.passengers[originAddress] = true;
-        withdrawals[originAddress] = amount;
+        flight.bookings[originAddress] = true;
+        flight.insurances[originAddress] = amount;
+        passengers.push(originAddress);
         withdrawals[flight.airline] = flight.price;
     }
 
-    // /**
-    //  *  @dev Credits payouts to insurees
-    // */
-    // function creditInsurees()
-    // internal
-    // requireIsOperational
-    // {
-    // }
+    function creditInsurees(bytes32 flightKey)
+    external
+    requireIsOperational
+    callerAuthorized
+    flightRegistered(flightKey)
+    {
+        // get flight
+        Flight storage flight = flights[flightKey];
+        // loop over passengers and credit them their insurance amount
+        for (uint i = 0; i < passengers.length; i++) {
+            withdrawals[passengers[i]] = flight.insurances[passengers[i]];
+        }
+    }
 
 
     /**
@@ -319,6 +348,7 @@ contract FlightSuretyData {
     requireIsOperational
     callerAuthorized
     {
+        // Check Effect Interaction pattern to protect against re entry attack
         // Check
         require(withdrawals[originAddress] > 0, "No amount to be transferred to this address");
         // Effect
@@ -343,6 +373,20 @@ contract FlightSuretyData {
     {
         airlines[originAddress].funded = true;
     }
+
+    // function processFlightStatus
+    // (
+    //     bytes32 flightKey,
+    //     uint status
+    // )
+    // external
+    // flightRegistered(flightKey)
+    // requireIsOperational
+    // callerAuthorized
+    // {
+    //     Flight memory flight = flights[flightKey];
+    //     flight.statusCode = status;
+    // }
 
     /**
     * @dev Fallback function for funding smart contract.

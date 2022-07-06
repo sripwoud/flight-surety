@@ -185,21 +185,26 @@ contract('Flight Surety Tests', async (accounts) => {
       accounts[9]
     )
     assert(paxOnFlight, 'Flight booking unsuccessful')
-    const insuranceCredit = await config.flightSuretyData.withdrawals.call(accounts[9])
+    const insuranceCredit = await config.flightSuretyData.subscribedInsurance.call(
+      flightRef,
+      to,
+      landing,
+      accounts[9]
+    )
     assert.equal(
       +insuranceCredit,
       Math.floor(+insurancePayment * 3 / 2),
       'Insurance amount not credited correctly')
   })
 
-  it('(withdraw function) Passenger (if insured flight is delayed) or airline (for paid flight tickets) can withdraw their credited money', async () => {
+  it('(withdraw function) Airline can withdraw their credited amount (from bought flight tickets)', async () => {
     // Passenger can withdraw
-    let balanceBefore = await web3.eth.getBalance(accounts[9])
-    let tx = await config.flightSuretyApp.withdraw({ from: accounts[9] })
-    let balanceAfter = await web3.eth.getBalance(accounts[9])
-    assert(+balanceBefore < +balanceAfter, 'Error')
+    let balanceBefore = await web3.eth.getBalance(config.firstAirline)
+    let tx = await config.flightSuretyApp.withdraw({ from: config.firstAirline })
+    let balanceAfter = await web3.eth.getBalance(config.firstAirline)
+    assert(+balanceBefore < +balanceAfter, 'Withdrawal failed')
     truffleAssert.eventEmitted(tx, 'withdrawRequest', ev => {
-      return ev.recipient === accounts[9]
+      return ev.recipient === config.firstAirline
     })
 
     // Airline can withdraw
