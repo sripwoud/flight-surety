@@ -1,5 +1,6 @@
-var HDWalletProvider = require('truffle-hdwallet-provider')
-var mnemonic = 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat'
+const HDWalletProvider = require('truffle-hdwallet-provider')
+const fs = require('fs')
+const mnemonic = fs.readFileSync(".secret").toString().trim()
 
 module.exports = {
   networks: {
