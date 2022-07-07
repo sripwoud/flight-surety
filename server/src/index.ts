@@ -13,8 +13,7 @@ const start = async () => {
   const server = new Server({
     dataContract,
     appContract,
-    oraclesContract,
-    numOracles: 10
+    oraclesContract
   })
 
   try {

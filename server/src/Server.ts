@@ -1,5 +1,5 @@
-import Signers from './eth/signers'
-import { BigNumber, ethers, utils, Wallet } from 'ethers'
+import oracles from './eth/oracles'
+import { BigNumber, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -30,28 +30,24 @@ type Flight = {
 }
 
 class Server {
-  oracles: Wallet[] = []
+  oracles: Wallet[] = [...oracles]
   flights: Record<string, Flight> = {}
   dataContract
   appContract
   oraclesContract
-  numOracles
 
   constructor({
     dataContract,
     appContract,
-    oraclesContract,
-    numOracles
+    oraclesContract
   }: {
     dataContract: any
     appContract: any
     oraclesContract: any
-    numOracles: number
   }) {
     this.dataContract = dataContract
     this.appContract = appContract
     this.oraclesContract = oraclesContract
-    this.numOracles = numOracles
   }
 
   // random number out of [1, 2, 3, 4, 5]
