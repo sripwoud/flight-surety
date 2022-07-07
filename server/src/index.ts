@@ -6,7 +6,7 @@ import middlewares, { notFoundErrorHandler } from './middlewares'
 import Server from './Server'
 import { dataContract, appContract, oraclesContract } from './eth'
 
-const port = process.env.SERVER_PORT || 3001
+const port = process.env.PORT || 3001
 const app = express()
 
 const start = async () => {
