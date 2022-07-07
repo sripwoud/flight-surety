@@ -6,7 +6,8 @@ const nextConfig = {
     APP_ADDRESS: process.env.APP_ADDRESS,
     ORACLES_ADDRESS: process.env.ORACLES_ADDRESS,
     RPC_URL: process.env.RPC_URL,
-    CHAIN_ID: process.env.CHAIN_ID
+    CHAIN_ID: process.env.CHAIN_ID,
+    SERVER_URL: process.env.SERVER_URL
   }
 }
 

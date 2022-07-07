@@ -13,7 +13,7 @@ const useFlights = (paxAddress?: string) => {
 
   useEffect(() => {
     const fetchFlights = async () => {
-      let flights = await wretch('http://localhost:3001/flights')
+      let flights = await wretch(`${process.env.SERVER_URL}/flights`)
         .get()
         .json((flights) => Object.values(flights))
 
