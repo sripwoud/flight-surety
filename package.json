@@ -5,7 +5,7 @@
   "directories": {
     "test": "test"
   },
-  "repository": "https://github.com/techbubble/flight-surety",
+  "repository": "https://github.com/r1oga/flight-surety",
   "license": "MIT",
   "scripts": {
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
