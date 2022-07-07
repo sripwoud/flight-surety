@@ -1,11 +1,11 @@
 {
-  "name": "flightsurety",
+  "name": "flight-surety",
   "version": "1.0.0",
   "description": "",
   "directories": {
     "test": "test"
   },
-  "repository": "https://github.com/techbubble/flightsurety",
+  "repository": "https://github.com/techbubble/flight-surety",
   "license": "MIT",
   "scripts": {
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
