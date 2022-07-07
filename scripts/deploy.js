@@ -36,7 +36,7 @@ const deploy = async (contractName, params) => {
     signer
   )
 
-  const contract = await Contract.deploy(...params, { gasLimit: 30_000_000 })
+  const contract = await Contract.deploy(...params)
 
   await contract.deployed()
   console.log(
@@ -84,7 +84,7 @@ async function main() {
   await tx.wait()
   console.log('Authorized Oracles Contract')
 
-  await app.fund({ value: ethers.utils.parseEther('10') })
+  await app.fund({ value: ethers.utils.parseEther('0.1') })
   console.log(`Airline 0 ${signer.address} has funded`)
 }
 

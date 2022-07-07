@@ -5,7 +5,9 @@
     "oraclesAddress": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
   },
   "ropsten": {
-    "dataAddress": "0x9C78E536789793c2dc4dBecc0fe3e212BBAEBdd1"
+    "dataAddress": "0x13c55Fe5a4fE91d7865D4be53C260757fC989974",
+    "appAddress": "0x82C107cb2a851AA920A389896A4467A5E07acc60",
+    "oracleAddress": "0x30877f4Dcf2F99F846439Ce797CE4C3154F79c6A"
   },
   "numAccounts": 50,
   "numOracles": 20
