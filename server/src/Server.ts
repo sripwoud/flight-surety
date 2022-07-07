@@ -1,5 +1,5 @@
-import Signers from './eth/signers'
-import { BigNumber, ethers, utils, Wallet } from 'ethers'
+import oracles from './eth/oracles'
+import { BigNumber, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -30,28 +30,24 @@ type Flight = {
 }
 
 class Server {
-  oracles: Wallet[] = []
+  oracles: Wallet[] = [...oracles]
   flights: Record<string, Flight> = {}
   dataContract
   appContract
   oraclesContract
-  numOracles
 
   constructor({
     dataContract,
     appContract,
-    oraclesContract,
-    numOracles
+    oraclesContract
   }: {
     dataContract: any
     appContract: any
     oraclesContract: any
-    numOracles: number
   }) {
     this.dataContract = dataContract
     this.appContract = appContract
     this.oraclesContract = oraclesContract
-    this.numOracles = numOracles
   }
 
   // random number out of [1, 2, 3, 4, 5]
@@ -118,7 +114,7 @@ class Server {
   updateFlights = async () => {
     const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
 
-    for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
+    for (let i = 0; i <= indexFlightKeys.toNumber(); i++) {
       const key = await this.dataContract.flightKeys(i)
       const flight = await this.dataContract.flights(key)
 
@@ -164,53 +160,10 @@ class Server {
     }
   }
 
-  registerOracles = async () => {
-    for (const oracle of Signers(this.numOracles)) {
-      try {
-        // const REGISTRATION_FEE = await this.oraclesContract.REGISTRATION_FEE()
-        await this.oraclesContract.connect(oracle).registerOracle()
-        this.oracles.push(oracle)
-      } catch (e) {
-        // swallow
-        // console.log(`could not register oracle ${oracle.address}`)
-      }
-    }
-  }
-
-  registerTwoFlights = async () => {
-    const tx = await this.appContract
-      .connect(this.oracles[0])
-      .registerFlight(
-        new Date().getTime(),
-        new Date().getTime() + 24 * 60 * 60 * 1000,
-        'BER1122',
-        ethers.utils.parseEther('1.2'),
-        'Paris',
-        'Berlin'
-      )
-    await tx.wait(1)
-
-    await this.appContract
-      .connect(this.oracles[0])
-      .registerFlight(
-        new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
-        new Date().getTime() + 3 * 24 * 60 * 60 * 1000,
-        'BER2211',
-        ethers.utils.parseEther('1'),
-        'Berlin',
-        'Paris'
-      )
-    console.log('Airline 0 registered 2 flights')
-  }
-
   init = async () => {
     this.watchAndLogEvents()
     this.watchAndReactToEvents()
-    await this.registerOracles()
-    await this.registerTwoFlights()
     await this.updateFlights()
-
-    // console.log(this.flights)
   }
 }
 
