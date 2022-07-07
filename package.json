@@ -10,10 +10,11 @@
   "scripts": {
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
     "compile": "cd contracts && forge build && find ../server/eth/contracts ../ui/contracts -maxdepth 0 -type d -exec cp out/FlightSuretyApp.sol/FlightSuretyApp.json out/FlightSuretyData.sol/FlightSuretyData.json out/FlightSuretyOracles.sol/FlightSuretyOracles.json {} \\;",
-    "deploy": "node scripts/deploy",
+    "deploy:contracts": "node scripts/deploy",
+    "deploy:server": "git add . && git commit -m Heroku && git subtree push --prefix server heroku master",
+    "register": "node scripts/register",
     "start:server": "NODE_ENV=development ts-node-dev --poll -T server/src/index.ts",
-    "start:ui": "cd ui && yarn dev",
-    "register": "node scripts/register"
+    "start:ui": "cd ui && yarn dev"
   },
   "author": "r1oga",
   "devDependencies": {
