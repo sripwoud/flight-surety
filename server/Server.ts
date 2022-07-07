@@ -1,5 +1,5 @@
 import Signers from './eth/signers'
-import { BigNumber, ethers, Signer, utils, Wallet } from 'ethers'
+import { BigNumber, ethers, utils, Wallet } from 'ethers'
 
 const watchEvent = (eventName: string, contract: any) => {
   contract.on(eventName, (data: any) => {
@@ -30,23 +30,28 @@ type Flight = {
 }
 
 class Server {
-  oracles: Wallet[]
+  oracles: Wallet[] = []
   flights: Record<string, Flight> = {}
   dataContract
   appContract
+  oraclesContract
+  numOracles
 
   constructor({
     dataContract,
     appContract,
+    oraclesContract,
     numOracles
   }: {
     dataContract: any
     appContract: any
+    oraclesContract: any
     numOracles: number
   }) {
     this.dataContract = dataContract
     this.appContract = appContract
-    this.oracles = Signers(numOracles)
+    this.oraclesContract = oraclesContract
+    this.numOracles = numOracles
   }
 
   // random number out of [1, 2, 3, 4, 5]
@@ -56,14 +61,14 @@ class Server {
     ;['AirlineRegistered', 'Funded', 'Paid', 'Credited'].forEach((event) => {
       watchEvent(event, this.dataContract)
     })
-    ;[
-      'OracleRegistered',
-      'OracleReport',
-      'FlightProcessed',
-      'WithdrawRequest'
-    ].forEach((event) => {
+    ;['WithdrawRequest'].forEach((event) => {
       watchEvent(event, this.appContract)
     })
+    ;['OracleRegistered', 'OracleReport', 'FlightProcessed'].forEach(
+      (event) => {
+        watchEvent(event, this.oraclesContract)
+      }
+    )
   }
 
   watchAndReactToEvents = () => {
@@ -91,16 +96,23 @@ class Server {
       }
     })
 
-    this.appContract.on('OracleRequest', async (index: number, key: string) => {
-      console.log('OracleRequest', { index, key })
-      await this.submitResponses(index, key)
-    })
+    this.oraclesContract.on(
+      'OracleRequest',
+      async (index: number, key: string) => {
+        console.log('OracleRequest', { index, key })
+        await this.submitResponses(index, key)
+      }
+    )
 
     // @ts-ignore
-    this.appContract.on('FlightStatusInfo', (key, statusCode) => {
-      console.log('FlightStatusInfo', { key, statusCode })
-      this.flights[key].statusCode = statusCode
-    })
+    this.oraclesContract.on(
+      'FlightStatusInfo',
+      (key: string, statusCode: number) => {
+        console.log('FlightStatusInfo', { key, statusCode })
+        // @ts-ignore
+        this.flights[key].statusCode = STATUS_CODES[statusCode]
+      }
+    )
   }
 
   updateFlights = async () => {
@@ -129,39 +141,38 @@ class Server {
   submitResponses = async (index: number, key: string) => {
     for (const oracle of this.oracles) {
       const statusCode = this.getStatusCode()
-      const oracleIndexes: number[] = await this.appContract
-        .connect(oracle)
-        .getMyIndexes()
+      try {
+        const oracleIndexes: number[] = await this.oraclesContract
+          .connect(oracle)
+          .getMyIndexes()
 
-      for (const index of oracleIndexes) {
-        if (oracleIndexes.includes(index)) {
-          try {
-            await this.appContract
-              .connect(oracle)
-              .submitOracleResponse(index, key, statusCode)
-          } catch (e) {
-            console.log(`${oracle.address} ${index} submit failed`)
+        for (const index of oracleIndexes) {
+          if (oracleIndexes.includes(index)) {
+            try {
+              await this.oraclesContract
+                .connect(oracle)
+                .submitOracleResponse(index, key, statusCode)
+              console.log(`oracle ${oracle.address} submitted response`)
+            } catch (e) {
+              console.log(`${oracle.address} ${index} submit failed`)
+            }
           }
         }
+      } catch (e) {
+        // swallow
       }
     }
   }
 
-  registerOracle = async (oracle: Signer) => {
-    const REGISTRATION_FEE = await this.appContract.REGISTRATION_FEE()
-    return this.appContract
-      .connect(oracle)
-      .registerOracle({ value: REGISTRATION_FEE })
-  }
-
   registerOracles = async () => {
-    for (const oracle of this.oracles) {
-      // console.log(oracle.address)
+    for (const oracle of Signers(this.numOracles)) {
       try {
-        await this.registerOracle(oracle)
+        // const REGISTRATION_FEE = await this.oraclesContract.REGISTRATION_FEE()
+        await this.oraclesContract.connect(oracle).registerOracle()
+        this.oracles.push(oracle)
       } catch (e) {
         // swallow
-        console.log(`could not register oracle ${oracle.address}`)
+        // console.log(`could not register oracle ${oracle.address}`)
       }
     }
   }
@@ -198,6 +209,8 @@ class Server {
     await this.registerOracles()
     await this.registerTwoFlights()
     await this.updateFlights()
+
+    // console.log(this.flights)
   }
 }
 
