@@ -164,53 +164,10 @@ class Server {
     }
   }
 
-  registerOracles = async () => {
-    for (const oracle of Signers(this.numOracles)) {
-      try {
-        // const REGISTRATION_FEE = await this.oraclesContract.REGISTRATION_FEE()
-        await this.oraclesContract.connect(oracle).registerOracle()
-        this.oracles.push(oracle)
-      } catch (e) {
-        // swallow
-        // console.log(`could not register oracle ${oracle.address}`)
-      }
-    }
-  }
-
-  registerTwoFlights = async () => {
-    const tx = await this.appContract
-      .connect(this.oracles[0])
-      .registerFlight(
-        new Date().getTime(),
-        new Date().getTime() + 24 * 60 * 60 * 1000,
-        'BER1122',
-        ethers.utils.parseEther('1.2'),
-        'Paris',
-        'Berlin'
-      )
-    await tx.wait(1)
-
-    await this.appContract
-      .connect(this.oracles[0])
-      .registerFlight(
-        new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
-        new Date().getTime() + 3 * 24 * 60 * 60 * 1000,
-        'BER2211',
-        ethers.utils.parseEther('1'),
-        'Berlin',
-        'Paris'
-      )
-    console.log('Airline 0 registered 2 flights')
-  }
-
   init = async () => {
     this.watchAndLogEvents()
     this.watchAndReactToEvents()
-    await this.registerOracles()
-    await this.registerTwoFlights()
     await this.updateFlights()
-
-    // console.log(this.flights)
   }
 }
 
