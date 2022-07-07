@@ -3,7 +3,6 @@ import 'express-async-errors'
 
 import router from './routes'
 import middlewares, { notFoundErrorHandler } from './middlewares'
-import config from '../config.json'
 import Server from './Server'
 import { dataContract, appContract, oraclesContract } from './eth'
 
@@ -15,7 +14,7 @@ const start = async () => {
     dataContract,
     appContract,
     oraclesContract,
-    numOracles: config.numOracles
+    numOracles: 10
   })
 
   try {
