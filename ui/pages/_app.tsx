@@ -8,8 +8,8 @@ import { DAppProvider, Config } from '@usedapp/core'
 import Layout from '../components/Layout'
 
 const config: Config = {
-  readOnlyChainId: 3,
-  readOnlyUrls: { 3: process.env.RPC_URL! }
+  readOnlyChainId: +process.env.CHAIN_ID!,
+  readOnlyUrls: { [process.env.CHAIN_ID!]: process.env.RPC_URL! }
 }
 
 function MyApp({ Component, pageProps }: AppProps) {

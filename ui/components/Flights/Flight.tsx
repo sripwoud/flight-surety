@@ -3,7 +3,7 @@ import React, { ChangeEvent, FC, useState } from 'react'
 import { Button, Checkbox, Input, Table } from 'semantic-ui-react'
 
 import { FlightProps } from '../../types'
-import { app } from '../../contracts'
+import { app, oracles } from '../../contracts'
 import { useContractFunction } from '@usedapp/core'
 import { formatDate } from '../../utils'
 
@@ -47,7 +47,7 @@ const Flight: FC<{
   }
 
   const { send: fetchFlightStatus } = useContractFunction(
-    app,
+    oracles,
     'fetchFlightStatus'
   )
   const handleAskPress = () => {
