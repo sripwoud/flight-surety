@@ -114,7 +114,7 @@ class Server {
   updateFlights = async () => {
     const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
 
-    for (let i = 0; i < indexFlightKeys.toNumber(); i++) {
+    for (let i = 0; i <= indexFlightKeys.toNumber(); i++) {
       const key = await this.dataContract.flightKeys(i)
       const flight = await this.dataContract.flights(key)
 
