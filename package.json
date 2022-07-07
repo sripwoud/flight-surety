@@ -12,10 +12,12 @@
     "compile": "cd contracts && forge build && find ../server/eth/contracts ../ui/contracts -maxdepth 0 -type d -exec cp out/FlightSuretyApp.sol/FlightSuretyApp.json out/FlightSuretyData.sol/FlightSuretyData.json out/FlightSuretyOracles.sol/FlightSuretyOracles.json {} \\;",
     "deploy": "node scripts/deploy",
     "start:server": "NODE_ENV=development ts-node-dev --poll -T server/src/index.ts",
-    "start:ui": "cd ui && yarn dev"
+    "start:ui": "cd ui && yarn dev",
+    "register": "node scripts/register"
   },
   "author": "r1oga",
   "devDependencies": {
+    "ethers": "^5.6.9",
     "line-replace": "^2.0.1",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
