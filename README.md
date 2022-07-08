@@ -8,7 +8,7 @@ FlightSurety is an Ethereum DApp to manage flight insurances.
 
 Airlines form a consortium:
 
-- Providing a funding of at least 10 ETH is required to join
+- Providing a funding of at least [`minFund`](https://github.com/r1oga/flight-surety/blob/410d7d477c95118ff7ddc24c8bc79b50c1389e03/contracts/src/FlightSuretyApp.sol#L53) is required to join
 - Starting from a number of 4 airlines registered, consensus of 50% is required  (votes of half of the registered
   airlines) for new airline registration
 - Consensus is not required to register flights
@@ -63,12 +63,12 @@ This offers the following benefits:
 5. Start server: `yarn start:server` (available on `http://localhost:3001`)  
    **API**
 
-   | path        | method | request                                                          | response                   |
-   |-------------|--------|------------------------------------------------------------------|----------------------------|
-   | /flights    | GET    |                                                                  | List of registered flights |
-   | /flight/:key | GET    |                                                                  | flight                    |
-   | /response/:key| GET    |                                                                  | status code              |
-   | /flight-key | POST   | { flightRef: string, from: string, to: string, takeOff: number } | flight key hash            |
+   | path          | method | request                                                          | response                   |
+   |---------------|--------|------------------------------------------------------------------|----------------------------|
+   | /flights      | GET    |                                                                  | List of registered flights |
+   | /flight/:key  | GET    |                                                                  | flight                     |
+   | /response/:key| GET    |                                                                  | status code                |
+   | /flight-key   | POST   | { flightRef: string, from: string, to: string, takeOff: number } | flight key hash            |
 
 6. Start UI: `yarn start:ui` ((available on `http://localhost:3000`))
 
