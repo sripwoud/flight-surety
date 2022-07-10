@@ -7,7 +7,7 @@ import { formatDate } from '../../utils'
 
 const Flight: FC<{
   flightProps: FlightProps
-  children?: any[]
+  children?: React.ReactNode
 }> = ({ flightProps: flightProps, children }) => {
   const { key, flightRef, from, to, price, takeOff, landing } = flightProps
 
