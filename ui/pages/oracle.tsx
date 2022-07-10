@@ -1,7 +1,5 @@
 import OracleForm from '../components/OracleForm'
 
-const Oracle = () => {
-  return <OracleForm />
-}
+const Oracle = () => <OracleForm />
 
 export default Oracle
