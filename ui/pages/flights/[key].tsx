@@ -2,6 +2,8 @@ import React from 'react'
 import { Header, Table } from 'semantic-ui-react'
 import wretch from 'wretch'
 
+import { formatDate } from '../../utils'
+
 const STATUS_CODES = {
   0: 'Unknown',
   1: 'On time',
@@ -32,8 +34,8 @@ const Flight = (props) => {
       flightRef,
       from,
       to,
-      takeOff,
-      landing,
+      formatDate(new Date(takeOff)),
+      formatDate(new Date(landing)),
       price,
       STATUS_CODES[statusCode]
     ]

@@ -2,7 +2,6 @@ import React, { FC } from 'react'
 import { Header, Icon, Table } from 'semantic-ui-react'
 
 const FLightsList: FC<{
-  booked?: boolean
   title: string
   extraHeaders: string[]
   flights: JSX.Element[]
