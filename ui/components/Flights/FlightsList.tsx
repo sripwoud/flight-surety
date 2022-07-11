@@ -3,9 +3,9 @@ import { Header, Icon, Table } from 'semantic-ui-react'
 
 const FLightsList: FC<{
   title: string
-  extraHeaders: string[]
+  extraHeaders?: string[]
   flights: JSX.Element[]
-}> = ({ flights, title, extraHeaders }) => {
+}> = ({ flights, title, extraHeaders = [] }) => {
   const headers = ['From', 'To', 'Take Off', 'Landing', 'ETH', ...extraHeaders]
 
   return (

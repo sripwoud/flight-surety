@@ -48,7 +48,7 @@ const PaxForm = () => {
       {bookedFlights && (
         <FLightsList
           title="Booked Fights"
-          extraHeaders={['Status', 'Claim']}
+          extraHeaders={['Status']}
           flights={bookedFlights}
         />
       )}

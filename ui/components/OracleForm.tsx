@@ -26,13 +26,7 @@ const OracleForm = () => {
       )
     })
 
-  return (
-    <FlightsList
-      extraHeaders={['From', 'To', 'Take Off', 'Landing', 'ETH']}
-      flights={flights}
-      title="Fetch Flight Status"
-    />
-  )
+  return <FlightsList flights={flights} title="Fetch Flight Status" />
 }
 
 export default OracleForm
