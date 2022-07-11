@@ -56,6 +56,6 @@ const Flight = (props) => {
 }
 
 Flight.getInitialProps = async ({ query: { key } }) =>
-  wretch(`http://localhost:3001/flight/${key}`).get().json()
+  wretch(`${process.env.SERVER_URL}/flight/${key}`).get().json()
 
 export default Flight
