@@ -1,5 +1,5 @@
 import { Button, Header, Form, Segment, Icon } from 'semantic-ui-react'
-import { ChangeEvent, useState } from 'react'
+import { useState } from 'react'
 import { utils } from 'ethers'
 import { useContractFunction, useEthers } from '@usedapp/core'
 import { app } from '../contracts'
@@ -19,58 +19,13 @@ const AirlineForm = () => {
   const { account } = useEthers()
   const hasFunded = useHasFunded(account)
   const canRegisterAirline = useCanRegister(account)
-
-  const handleFundingAmount = (event: ChangeEvent<HTMLInputElement>) => {
-    setFundingAmount(event.target.value)
-  }
-  const handleNewAddress = (event: ChangeEvent<HTMLInputElement>) => {
-    // validate address
-    setNewAirlineAddress(event.target.value)
-  }
-
-  const { send: fund } = useContractFunction(app, 'fund')
-  const handleJoin = async () => {
-    await fund({ value: utils.parseEther(fundingAmount) })
-  }
-
-  const { send: registerAirline } = useContractFunction(app, 'registerAirline')
-  const handleRegisterAirline = async () => {
-    await registerAirline(newAirlineAddress)
-  }
-
-  const handleFlightRef = (event: ChangeEvent<HTMLInputElement>) =>
-    setFlightRef(event.target.value)
-  const handleFrom = (event: ChangeEvent<HTMLInputElement>) =>
-    setFrom(event.target.value)
-  const handleTo = (event: ChangeEvent<HTMLInputElement>) =>
-    setTo(event.target.value)
-  const handleDeparture = (event: ChangeEvent<HTMLInputElement>) =>
-    setDeparture(new Date(event.target.value).getTime())
-  const handleLanding = (event: ChangeEvent<HTMLInputElement>) =>
-    setLanding(new Date(event.target.value).getTime())
-  const handlePrice = (event: ChangeEvent<HTMLInputElement>) => {
-    setPrice(event.target.value)
-  }
-
   const canRegisterFlight =
     flightRef && from && to && departure && landing && price
-  const { send: registerFlight } = useContractFunction(app, 'registerFlight')
-  const handleRegisterFlight = async () => {
-    console.log('Register Flight', from, to, flightRef, landing, departure)
-    await registerFlight(
-      departure,
-      landing,
-      flightRef,
-      utils.parseEther(price),
-      from,
-      to
-    )
-  }
 
+  const { send: fund } = useContractFunction(app, 'fund')
+  const { send: registerAirline } = useContractFunction(app, 'registerAirline')
+  const { send: registerFlight } = useContractFunction(app, 'registerFlight')
   const { send: withdraw } = useContractFunction(app, 'withdraw')
-  const handleWithdrawPress = () => {
-    withdraw()
-  }
 
   return (
     <>
@@ -85,10 +40,14 @@ const AirlineForm = () => {
                 type="number"
                 min="10"
                 step="0.1"
-                onChange={handleFundingAmount}
+                onChange={(e) => setFundingAmount(e.target.value)}
                 value={fundingAmount}
               />
-              <Button type="submit" onClick={handleJoin}>
+              <Button
+                type="submit"
+                onClick={() =>
+                  fund({ value: utils.parseEther(fundingAmount) })
+                }>
                 <Icon name="ethereum"></Icon>
                 Join
               </Button>
@@ -100,10 +59,12 @@ const AirlineForm = () => {
               <Form.Input
                 label="New Airline address"
                 placeholder="0x..."
-                onChange={handleNewAddress}
+                onChange={(e) => setNewAirlineAddress(e.target.value)}
               />
               {newAirlineAddress && (
-                <Button type="submit" onClick={handleRegisterAirline}>
+                <Button
+                  type="submit"
+                  onClick={() => registerAirline(newAirlineAddress)}>
                   Vote for Airline to Join
                 </Button>
               )}
@@ -119,7 +80,7 @@ const AirlineForm = () => {
               label="Reference"
               fluid
               placeholder="ABC123"
-              onChange={handleFlightRef}
+              onChange={(e) => setFlightRef(e.target.value)}
               width={3}
               value={flightRef}
             />
@@ -128,7 +89,7 @@ const AirlineForm = () => {
               width={3}
               fluid
               placeholder="City"
-              onChange={handleFrom}
+              onChange={(e) => setFrom(e.target.value)}
               value={from}
             />
             <Form.Input
@@ -136,7 +97,7 @@ const AirlineForm = () => {
               width={3}
               fluid
               placeholder="City"
-              onChange={handleTo}
+              onChange={(e) => setTo(e.target.value)}
               value={to}
             />
             <Form.Input
@@ -144,14 +105,14 @@ const AirlineForm = () => {
               width={3}
               fluid
               type="datetime-local"
-              onChange={handleDeparture}
+              onChange={(e) => setDeparture(new Date(e.target.value).getTime())}
             />
             <Form.Input
               label="Landing"
               width={3}
               fluid
               type="datetime-local"
-              onChange={handleLanding}
+              onChange={(e) => setLanding(new Date(e.target.value).getTime())}
             />
             <Form.Input
               label="Price (ETH)"
@@ -160,12 +121,23 @@ const AirlineForm = () => {
               type="number"
               min="0"
               step="0.001"
-              onChange={handlePrice}
+              onChange={(e) => setPrice(e.target.value)}
               value={price}
             />
           </Form.Group>
           {canRegisterFlight && (
-            <Button type="submit" onClick={handleRegisterFlight}>
+            <Button
+              type="submit"
+              onClick={() =>
+                registerFlight(
+                  departure,
+                  landing,
+                  flightRef,
+                  utils.parseEther(price),
+                  from,
+                  to
+                )
+              }>
               Register
             </Button>
           )}
@@ -174,7 +146,7 @@ const AirlineForm = () => {
       <Segment>
         <Header>Tickets</Header>
         <Form>
-          <Button type="submit" onClick={handleWithdrawPress}>
+          <Button type="submit" onClick={() => withdraw()}>
             <Icon name="ethereum"></Icon>
             Withdraw Earnings
           </Button>

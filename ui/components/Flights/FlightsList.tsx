@@ -1,29 +1,18 @@
 import React, { FC } from 'react'
 import { Header, Icon, Table } from 'semantic-ui-react'
 
-import Flight from './Flight'
-
-import { useFlights } from '../../hooks'
-
-const FlightsList: FC<{
-  booked?: boolean
+const FLightsList: FC<{
   title: string
-}> = ({ title }) => {
-  const Flights = useFlights()
-    .filter(({ statusCode }) => statusCode === 'Unknown')
-    .map((flightProps) => {
-      return (
-        <Flight key={flightProps.key} flightProps={flightProps} forOracle />
-      )
-    })
-
-  const headers = ['From', 'To', 'Take Off', 'Landing', 'ETH']
+  extraHeaders?: string[]
+  flights: JSX.Element[]
+}> = ({ flights, title, extraHeaders = [] }) => {
+  const headers = ['From', 'To', 'Take Off', 'Landing', 'ETH', ...extraHeaders]
 
   return (
     <>
       <Header>{title}</Header>
 
-      {!!Flights.length ? (
+      {!!flights.length ? (
         <Table compact celled definition selectable textAlign="center">
           <Table.Header>
             <Table.Row>
@@ -36,7 +25,7 @@ const FlightsList: FC<{
             </Table.Row>
           </Table.Header>
 
-          <Table.Body>{Flights}</Table.Body>
+          <Table.Body>{flights}</Table.Body>
         </Table>
       ) : (
         'None'
@@ -44,4 +33,4 @@ const FlightsList: FC<{
     </>
   )
 }
-export default FlightsList
+export default FLightsList

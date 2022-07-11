@@ -115,22 +115,24 @@ class Server {
     const indexFlightKeys: BigNumber = await this.dataContract.indexFlightKeys()
 
     for (let i = 0; i <= indexFlightKeys.toNumber(); i++) {
-      const key = await this.dataContract.flightKeys(i)
-      const flight = await this.dataContract.flights(key)
+      try {
+        const key = await this.dataContract.flightKeys(i)
+        const flight = await this.dataContract.flights(key)
 
-      this.flights[key] = {
-        key: key,
-        isRegistered: flight.isRegistered,
-        // @ts-ignore
-        statusCode: STATUS_CODES[flight.statusCode],
-        takeOff: new Date(flight.takeOff.toNumber()),
-        landing: new Date(flight.landing.toNumber()),
-        airline: flight.airline,
-        flightRef: flight.flightRef,
-        price: utils.formatEther(flight.price),
-        from: flight.from,
-        to: flight.to
-      }
+        this.flights[key] = {
+          key: key,
+          isRegistered: flight.isRegistered,
+          // @ts-ignore
+          statusCode: STATUS_CODES[flight.statusCode],
+          takeOff: new Date(flight.takeOff.toNumber()),
+          landing: new Date(flight.landing.toNumber()),
+          airline: flight.airline,
+          flightRef: flight.flightRef,
+          price: utils.formatEther(flight.price),
+          from: flight.from,
+          to: flight.to
+        }
+      } catch (e) {}
     }
   }
 

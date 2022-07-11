@@ -18,18 +18,18 @@ const Header: FC = () => {
             <span className="text">Profile</span>
 
             <Dropdown.Menu>
-              <Link href="airline">
+              <Link href="/airline">
                 <Dropdown.Item>Airline</Dropdown.Item>
               </Link>
-              <Link href="passenger">
+              <Link href="/passenger">
                 <Dropdown.Item>Passenger</Dropdown.Item>
               </Link>
-              <Link href="oracle">
+              <Link href="/oracle">
                 <Dropdown.Item>Oracle</Dropdown.Item>
               </Link>
             </Dropdown.Menu>
           </Dropdown.Item>
-          <Link href="flights">
+          <Link href="/flights">
             <Dropdown.Item>Flights</Dropdown.Item>
           </Link>
         </Dropdown.Menu>
