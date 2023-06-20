@@ -1,12 +1,6 @@
 {
   "name": "flight-surety",
   "version": "1.0.0",
-  "description": "",
-  "directories": {
-    "test": "test"
-  },
-  "repository": "https://github.com/r1oga/flight-surety",
-  "license": "MIT",
   "scripts": {
     "anvil": "anvil -a $(dasel -f config.json '.numAccounts')",
     "compile": "cd contracts && forge build && find ../server/eth/contracts ../ui/contracts -maxdepth 0 -type d -exec cp out/FlightSuretyApp.sol/FlightSuretyApp.json out/FlightSuretyData.sol/FlightSuretyData.json out/FlightSuretyOracles.sol/FlightSuretyOracles.json {} \\;",
@@ -16,7 +10,6 @@
     "start:server": "NODE_ENV=development ts-node-dev --poll -T server/src/index.ts",
     "start:ui": "cd ui && yarn dev"
   },
-  "author": "r1oga",
   "devDependencies": {
     "ethers": "^5.6.9",
     "line-replace": "^2.0.1",
@@ -26,5 +19,8 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.7.4",
     "yargs": "^17.5.1"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
