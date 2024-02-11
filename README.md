@@ -25,7 +25,7 @@ Passengers can:
 
 - Book flights that have been registered by airlines.
 - Subscribe insurance
-    - This allows them to get reimbursed 1.5 x their insurance amount if a flight is delay due to airline's
+    - This allows them to get reimbursed 1.5 x their insurance amount if a flight is delayed due to the airline's
       responsibility.
     - This credited amount is not transferred automatically but has to be withdrawn.
 
