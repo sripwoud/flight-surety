@@ -8,8 +8,8 @@ FlightSurety is an Ethereum DApp to manage flight insurances.
 
 Airlines form a consortium:
 
-- Providing a funding of at least [`minFund`](https://github.com/r1oga/flight-surety/blob/410d7d477c95118ff7ddc24c8bc79b50c1389e03/contracts/src/FlightSuretyApp.sol#L53) is required to join
-- Starting from a number of 4 airlines registered, consensus of 50% is required  (votes of half of the registered
+- Providing a funding of at least [`minFund`](https://github.com/sripwoud/flight-surety/blob/410d7d477c95118ff7ddc24c8bc79b50c1389e03/contracts/src/FlightSuretyApp.sol#L53) is required to join
+- Starting from 4 airlines registered, consensus of 50% is required  (votes of half of the registered
   airlines) for new airline registration
 - Consensus is not required to register flights
 
@@ -17,7 +17,7 @@ They can
 
 - Register other airlines.
 - Can register flights
-- Withdraw amount credited to them following flight ticket purchases by passengers.
+- Withdraw the amount credited to them following flight ticket purchases by passengers.
 
 ### Passengers
 
@@ -31,9 +31,9 @@ Passengers can:
 
 ### Oracles
 
-Oracles inform the smart contract about the status of a flight.  
+The oracles inform the smart contract about the status of a flight.  
 Flight status is requested by submitting a corresponding request to the oracles.    
-As soon as 3 oracles provides concurring opinion, the flight status is updated accordingly.  
+As soon as 3 oracles provide concurring opinion, the flight status is updated accordingly.  
 **Oracles are simulated**: they generate a random status code on the server side.
 
 ## Architecture

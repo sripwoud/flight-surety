@@ -7,14 +7,10 @@ const Footer: FC = () => {
       <Segment basic textAlign="center">
         <p>
           <a
-            href="https://github.com/r1oga/flight-surety"
+            href="https://github.com/sripwoud/flight-surety"
             target="_blank"
             rel="noreferrer">
             <Icon name="github" size="large" color="black" />
-          </a>
-          -{' '}
-          <a href="https://twitter.com/r1oga" target="_blank" rel="noreferrer">
-            @r1oga
           </a>
         </p>
         <p></p>

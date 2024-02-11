@@ -32,11 +32,11 @@ const html = `
       </table>
     </div>
     <footer>
-      <p>Made by @r1oga</p>
+      <p>Made by @sripwoud</p>
       <a
         rel="stylesheet"
         target="_blank"
-        href="https://github.com/r1oga"
+        href="https://github.com/sripwoud"
         >GitHub</a
       >
     </footer>

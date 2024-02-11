@@ -2,7 +2,6 @@
   "name": "flight-surety-server",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "r1oga",
   "license": "MIT",
   "scripts": {
     "postinstall": "tsc",
